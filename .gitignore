@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual Environments
+venv/
+ENV/
+env/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# pytest
+.pytest_cache/
+
+# mypy
+.mypy_cache/
+
+# Voice files (temporary)
+voice/base.wav
+voice/alisa.wav
+voice/input.wav
+voice/output.wav
+*.wav
+
+# RVC models (too large for git)
+voice/rvc/weights/*.pth
+voice/rvc/index/*.index
