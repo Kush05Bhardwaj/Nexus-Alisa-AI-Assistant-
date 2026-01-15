@@ -84,6 +84,10 @@ async def websocket_chat(websocket: WebSocket):
 
             # Regular chat message
             memory.add("user", user_input)
+            
+            # Show conversation history stats
+            summary = memory.get_summary()
+            print(f"💬 Conversation: {summary['turns']} turns, ~{summary['estimated_tokens']} tokens")
 
             memories = fetch_recent_memories()
             system_prompt = build_prompt(get_mode_prompt(), memories)

@@ -22,7 +22,8 @@ Meet **Alisa**, your cute tsundere AI desktop companion! An intelligent assistan
 
 🧠 **Smart AI Backend**
 - Real-time LLM streaming responses
-- Short and long-term memory
+- **Persistent conversation history** (remembers context across restarts)
+- Smart token management (keeps last ~3000 tokens)
 - Multiple conversation modes
 - Emotion detection and expression
 
@@ -30,6 +31,12 @@ Meet **Alisa**, your cute tsundere AI desktop companion! An intelligent assistan
 - Text chat with voice output
 - Full voice conversation
 - WebSocket-based real-time communication
+
+💾 **Conversation Memory**
+- Persistent SQLite database storage
+- Automatic context loading on startup
+- View/clear history with simple commands
+- Token-aware trimming for optimal performance
 
 ---
 
@@ -317,7 +324,35 @@ Contributions are welcome! Areas for improvement:
 
 ---
 
-## 📄 License
+## � Conversation History
+
+Alisa remembers your conversations across restarts!
+
+**View recent conversations:**
+```powershell
+python view_history.py
+```
+
+**View more messages:**
+```powershell
+python view_history.py -n 50
+```
+
+**Clear history:**
+```powershell
+python view_history.py --clear
+```
+
+**Check memory usage:**
+```powershell
+curl http://127.0.0.1:8000/history/summary
+```
+
+📖 **Full documentation:** [CONVERSATION_HISTORY.md](CONVERSATION_HISTORY.md)
+
+---
+
+## �📄 License
 
 MIT License - see LICENSE file for details
 

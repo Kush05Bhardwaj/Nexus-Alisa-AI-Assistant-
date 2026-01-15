@@ -4,6 +4,8 @@ import os
 import re
 import threading
 from concurrent.futures import ThreadPoolExecutor
+import edge_tts
+import pygame
 
 # Try different voice output methods in order of preference
 speak_func = None
@@ -33,6 +35,67 @@ except Exception as e:
             print("❌ No voice output available")
 
 WS_URL = "ws://127.0.0.1:8000/ws/chat"
+
+# Import voice configuration for custom TTS
+try:
+    from voice_config import get_voice, SPEECH_RATE, PITCH_SHIFT
+    VOICE = get_voice()
+except ImportError:
+    VOICE = "en-US-AnaNeural"
+    SPEECH_RATE = "+10%"
+    PITCH_SHIFT = "+5Hz"
+
+OUTPUT_FILE = "alisa_voice.mp3"
+
+async def speak_with_timing(text, ws):
+    """
+    Custom TTS function with precise timing control.
+    Sends [SPEECH_START] only when audio playback actually begins.
+    """
+    try:
+        # Step 1: Generate TTS audio (this takes time)
+        print(f"🎤 Generating TTS audio...")
+        communicate = edge_tts.Communicate(text, VOICE, rate=SPEECH_RATE, pitch=PITCH_SHIFT)
+        await communicate.save(OUTPUT_FILE)
+        print(f"✅ TTS audio generated")
+        
+        # Step 2: Prepare audio playback
+        if pygame.mixer.get_init():
+            pygame.mixer.music.stop()
+            pygame.mixer.music.unload()
+        
+        if not pygame.mixer.get_init():
+            pygame.mixer.init()
+        
+        pygame.mixer.music.load(OUTPUT_FILE)
+        
+        # Step 3: Start playback FIRST
+        pygame.mixer.music.play()
+        print(f"🎵 Audio playback started")
+        
+        # Step 4: NOW send [SPEECH_START] - mouth syncs with actual audio
+        try:
+            await ws.send("[SPEECH_START]")
+            print("✅ [SPEECH_START] sent (audio is now playing)")
+        except Exception as e:
+            print(f"⚠️ Failed to send [SPEECH_START]: {e}")
+        
+        # Step 5: Wait for playback to finish
+        def wait_for_playback():
+            while pygame.mixer.music.get_busy():
+                pygame.time.Clock().tick(10)
+        
+        loop = asyncio.get_event_loop()
+        await loop.run_in_executor(None, wait_for_playback)
+        
+        print(f"🎵 Audio playback finished")
+        pygame.mixer.music.unload()
+        
+    except Exception as e:
+        print(f"❌ TTS error: {e}")
+        import traceback
+        traceback.print_exc()
+
 
 def clean_text_for_speech(text: str) -> str:
     """Remove emotion tags and other non-speech elements from text"""
@@ -137,21 +200,12 @@ async def text_chat():
                 # Clean the text before speaking (remove emotion tags)
                 clean_reply = clean_text_for_speech(full_reply)
                 
-                # Speak the cleaned response - runs in separate thread to keep WebSocket alive
+                # Speak with precise timing control
                 if clean_reply.strip():  # Only speak if there's actual text
-                    # Notify overlay to start talking animation
-                    try:
-                        print("📤 Sending [SPEECH_START] to overlay...")
-                        await ws.send("[SPEECH_START]")
-                        print("✅ [SPEECH_START] sent successfully")
-                    except Exception as e:
-                        print(f"⚠️ Failed to send [SPEECH_START]: {e}")
-                    
                     print(f"🎤 Speaking: {clean_reply[:50]}...")
                     
-                    # Run speech in executor to avoid blocking the WebSocket
-                    loop = asyncio.get_event_loop()
-                    await loop.run_in_executor(None, speak_func, clean_reply)
+                    # Use custom TTS function that sends [SPEECH_START] at perfect timing
+                    await speak_with_timing(clean_reply, ws)
                     
                     print("✅ Speech completed")
                     

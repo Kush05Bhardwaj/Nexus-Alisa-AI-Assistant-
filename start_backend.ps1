@@ -31,9 +31,14 @@ if (-Not $packages) {
 # Start server
 Write-Host "`n" + "=" * 60 -ForegroundColor Cyan
 Write-Host "🌐 Starting FastAPI server on http://127.0.0.1:8000" -ForegroundColor Green
+Write-Host "📡 WebSocket: ws://127.0.0.1:8000/ws/chat" -ForegroundColor Yellow
+Write-Host "⏱️  WebSocket timeout: 300s (5 minutes)" -ForegroundColor Gray
 Write-Host "=" -NoNewline -ForegroundColor Cyan
 Write-Host "=" * 59 -ForegroundColor Cyan
 Write-Host ""
 
-# Start with longer WebSocket timeout (default is 20s, we set to 300s = 5 minutes)
-uvicorn app.main:app --reload --ws-ping-interval 30 --ws-ping-timeout 300
+# Start with extended timeouts to prevent idle disconnections
+# - ws-ping-interval 30: Server pings client every 30 seconds
+# - ws-ping-timeout 300: 5-minute timeout for WebSocket connections
+# - timeout-keep-alive 300: 5-minute HTTP keep-alive timeout
+uvicorn app.main:app --reload --ws-ping-interval 30 --ws-ping-timeout 300 --timeout-keep-alive 300
