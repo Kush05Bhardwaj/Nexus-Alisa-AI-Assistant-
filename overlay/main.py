@@ -18,10 +18,12 @@ class AvatarApp:
     
     def safe_start_talking(self):
         """Thread-safe way to start talking animation"""
+        print("📞 safe_start_talking() called from WebSocket thread")
         avatar_window.root.after(0, avatar_window.start_talking)
     
     def safe_stop_talking(self):
         """Thread-safe way to stop talking animation"""
+        print("📞 safe_stop_talking() called from WebSocket thread")
         avatar_window.root.after(0, avatar_window.stop_talking)
     
     def safe_on_emotion(self, emotion: str):
@@ -29,38 +31,61 @@ class AvatarApp:
         avatar_window.root.after(0, lambda: avatar_controller.on_emotion(emotion))
     
     async def listen_to_backend(self):
-        """WebSocket listener running in background thread"""
-        try:
-            async with websockets.connect(WS_URL) as ws:
-                print(f"✅ Connected to backend at {WS_URL}")
-                while True:
-                    msg = await ws.recv()
-                    
-                    if msg == "[END]":
-                        self.safe_stop_talking()
-                    
-                    elif msg == "[SPEECH_START]":
-                        # Text chat is starting to speak
-                        self.safe_start_talking()
-                    
-                    elif msg == "[SPEECH_END]":
-                        # Text chat finished speaking
-                        self.safe_stop_talking()
-                    
-                    elif msg.startswith("[EMOTION]"):
-                        emotion = msg.replace("[EMOTION]", "").strip()
-                        self.safe_on_emotion(emotion)
-                    
-                    else:
-                        # Streaming token received - start talking
-                        self.safe_start_talking()
+        """WebSocket listener running in background thread with auto-reconnect"""
+        reconnect_delay = 2  # seconds
+        
+        while True:
+            try:
+                async with websockets.connect(WS_URL) as ws:
+                    print(f"✅ Connected to backend at {WS_URL}")
+                    while True:
+                        msg = await ws.recv()
                         
-        except (websockets.exceptions.ConnectionClosedError, websockets.exceptions.ConnectionClosedOK) as e:
-            print(f"❌ Connection closed: {e}")
-        except OSError as e:
-            print(f"❌ Could not connect to backend. Make sure it's running on port 8000. Error: {e}")
-        except Exception as e:
-            print(f"❌ WebSocket error: {e}")
+                        # Only log important control messages
+                        if msg in ["[SPEECH_START]", "[SPEECH_END]", "[END]"] or msg.startswith("[EMOTION]"):
+                            print(f"🔵 [WS RECEIVED] {msg}")
+                        
+                        # Handle speech control signals from text_chat
+                        if msg == "[SPEECH_START]":
+                            # Text chat is starting to speak - start mouth animation
+                            print("🎤 [OVERLAY] Speech started - animating mouth")
+                            self.safe_start_talking()
+                        
+                        elif msg == "[SPEECH_END]":
+                            # Text chat finished speaking - stop mouth animation
+                            print("🤐 [OVERLAY] Speech ended - stopping mouth")
+                            self.safe_stop_talking()
+                        
+                        # Handle emotion changes
+                        elif msg.startswith("[EMOTION]"):
+                            emotion = msg.replace("[EMOTION]", "").strip()
+                            print(f"😊 [OVERLAY] Emotion: {emotion}")
+                            self.safe_on_emotion(emotion)
+                        
+                        # Ignore other messages (LLM tokens, [END], etc.)
+                        # We only care about speech control, not text generation
+                        elif msg == "[END]":
+                            # End of LLM generation - do nothing (speech might not have started yet)
+                            print("🏁 [OVERLAY] Received [END] - ignoring")
+                        elif msg == "":
+                            # Keepalive ping - ignore
+                            pass
+                        else:
+                            # LLM streaming token - ignore (don't animate during text generation)
+                            pass
+                            
+            except (websockets.exceptions.ConnectionClosedError, websockets.exceptions.ConnectionClosedOK) as e:
+                print(f"❌ Connection closed: {e}")
+                print(f"🔄 Reconnecting in {reconnect_delay} seconds...")
+                await asyncio.sleep(reconnect_delay)
+            except OSError as e:
+                print(f"❌ Could not connect to backend. Make sure it's running on port 8000. Error: {e}")
+                print(f"🔄 Retrying in {reconnect_delay} seconds...")
+                await asyncio.sleep(reconnect_delay)
+            except Exception as e:
+                print(f"❌ WebSocket error: {e}")
+                print(f"🔄 Reconnecting in {reconnect_delay} seconds...")
+                await asyncio.sleep(reconnect_delay)
     
     def start_websocket_thread(self):
         """Start WebSocket client in background thread"""

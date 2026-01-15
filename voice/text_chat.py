@@ -2,6 +2,8 @@ import asyncio
 import websockets
 import os
 import re
+import threading
+from concurrent.futures import ThreadPoolExecutor
 
 # Try different voice output methods in order of preference
 speak_func = None
@@ -135,25 +137,31 @@ async def text_chat():
                 # Clean the text before speaking (remove emotion tags)
                 clean_reply = clean_text_for_speech(full_reply)
                 
-                # Speak the cleaned response - runs in its own thread internally
+                # Speak the cleaned response - runs in separate thread to keep WebSocket alive
                 if clean_reply.strip():  # Only speak if there's actual text
                     # Notify overlay to start talking animation
                     try:
                         print("📤 Sending [SPEECH_START] to overlay...")
                         await ws.send("[SPEECH_START]")
-                    except:
-                        pass  # Overlay might not be connected
+                        print("✅ [SPEECH_START] sent successfully")
+                    except Exception as e:
+                        print(f"⚠️ Failed to send [SPEECH_START]: {e}")
                     
                     print(f"🎤 Speaking: {clean_reply[:50]}...")
-                    speak_func(clean_reply)
+                    
+                    # Run speech in executor to avoid blocking the WebSocket
+                    loop = asyncio.get_event_loop()
+                    await loop.run_in_executor(None, speak_func, clean_reply)
+                    
                     print("✅ Speech completed")
                     
                     # Notify overlay to stop talking animation
                     try:
                         print("📤 Sending [SPEECH_END] to overlay...")
                         await ws.send("[SPEECH_END]")
-                    except:
-                        pass  # Overlay might not be connected
+                        print("✅ [SPEECH_END] sent successfully")
+                    except Exception as e:
+                        print(f"⚠️ Failed to send [SPEECH_END]: {e}")
                 
                 print()  # Extra line for readability
 

@@ -35,4 +35,5 @@ Write-Host "=" -NoNewline -ForegroundColor Cyan
 Write-Host "=" * 59 -ForegroundColor Cyan
 Write-Host ""
 
-uvicorn app.main:app --reload
+# Start with longer WebSocket timeout (default is 20s, we set to 300s = 5 minutes)
+uvicorn app.main:app --reload --ws-ping-interval 30 --ws-ping-timeout 300
