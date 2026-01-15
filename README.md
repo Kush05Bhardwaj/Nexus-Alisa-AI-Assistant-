@@ -1,4 +1,4 @@
-# 🌟 Nexa Assistant - AI Desktop Companion
+# 🌟 Alisa Assistant - AI Desktop Companion
 
 Meet **Alisa**, your cute tsundere AI desktop companion! An intelligent assistant featuring real-time avatar overlay, voice chat, and LLM integration.
 
@@ -43,7 +43,7 @@ Meet **Alisa**, your cute tsundere AI desktop companion! An intelligent assistan
 ### 1️⃣ Clone Repository
 ```powershell
 git clone https://github.com/Kush05Bhardwaj/Nexus-Alisa-AI-Assistant-.git
-cd NexaAssistant
+cd AlisaAssistant
 ```
 
 ### 2️⃣ Start Backend
@@ -74,7 +74,7 @@ cd NexaAssistant
 ## 📁 Project Structure
 
 ```
-NexaAssistant/
+AlisaAssistant/
 ├── 📂 backend/          # FastAPI server with LLM integration
 ├── 📂 overlay/          # Animated avatar window (Tkinter)
 ├── 📂 voice/            # Voice I/O and TTS/STT
@@ -343,7 +343,7 @@ MIT License - see LICENSE file for details
 
 <div align="center">
 
-**Made with ❤️ by the Nexa Assistant Team**
+**Made with ❤️ by the Alisa Assistant Team**
 
 🌟 Star this repo if you like it! 🌟
 

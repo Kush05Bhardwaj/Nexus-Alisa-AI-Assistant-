@@ -2,7 +2,7 @@
 # Make sure backend is running first!
 
 Write-Host "============================================================" -ForegroundColor Cyan
-Write-Host "  Starting Nexa Assistant Overlay" -ForegroundColor Green
+Write-Host "  Starting Alisa Assistant Overlay" -ForegroundColor Green
 Write-Host "============================================================" -ForegroundColor Cyan
 
 Set-Location -Path "$PSScriptRoot\overlay"

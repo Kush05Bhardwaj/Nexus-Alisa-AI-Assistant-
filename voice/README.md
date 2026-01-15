@@ -1,6 +1,6 @@
-# 🎙️ Voice Module - Nexa Assistant
+# 🎙️ Voice Module - Alisa Assistant
 
-Voice input/output capabilities for Nexa Assistant with RVC voice conversion.
+Voice input/output capabilities for Alisa Assistant with RVC voice conversion.
 
 ## 📁 Structure
 
@@ -173,4 +173,4 @@ User hears ← Play Audio ← RVC Convert ← Edge-TTS (TTS) ← Response
 
 ---
 
-Made with ❤️ for Nexa Assistant
+Made with ❤️ for Alisa Assistant

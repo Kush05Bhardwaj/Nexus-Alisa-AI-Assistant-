@@ -1,7 +1,7 @@
 from fastapi import FastAPI, WebSocket
 from .ws import websocket_chat
 
-app = FastAPI(title="Nexa Core Backend")
+app = FastAPI(title="Alisa Core Backend")
 
 @app.websocket("/ws/chat")
 async def chat_ws(websocket: WebSocket):
@@ -9,4 +9,4 @@ async def chat_ws(websocket: WebSocket):
 
 @app.get("/")
 def root():
-    return {"status": "Nexa online"}
+    return {"status": "Alisa online"}

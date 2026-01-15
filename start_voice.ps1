@@ -3,7 +3,7 @@
 
 Write-Host "=" -NoNewline -ForegroundColor Cyan
 Write-Host "=" * 59 -ForegroundColor Cyan
-Write-Host "  🎙️ Starting Nexa Voice Chat" -ForegroundColor Green
+Write-Host "  🎙️ Starting Alisa Voice Chat" -ForegroundColor Green
 Write-Host "=" -NoNewline -ForegroundColor Cyan
 Write-Host "=" * 59 -ForegroundColor Cyan
 

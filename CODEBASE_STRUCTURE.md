@@ -1,4 +1,4 @@
-# 📁 Nexa Assistant - Complete Codebase Structure
+# 📁 Alisa Assistant - Complete Codebase Structure
 
 Complete documentation of all files, their purposes, and how they work together.
 
@@ -6,7 +6,7 @@ Complete documentation of all files, their purposes, and how they work together.
 
 ## 📊 Project Overview
 
-**Nexa Assistant** is a desktop AI companion with three main components:
+**Alisa Assistant** is a desktop AI companion with three main components:
 1. **Backend** - FastAPI server with LLM integration
 2. **Overlay** - Animated avatar window using Tkinter
 3. **Voice** - Speech input/output with optional RVC voice conversion
@@ -16,7 +16,7 @@ Complete documentation of all files, their purposes, and how they work together.
 ## 🗂️ Directory Structure
 
 ```
-NexaAssistant/
+AlisaAssistant/
 ├── 📂 backend/                  # FastAPI backend server
 │   ├── 📂 app/                  # Application code
 │   │   ├── main.py             ⭐ FastAPI entry point & routes
@@ -897,4 +897,4 @@ MODEL_NAME = "your-model-name"
 
 **Last Updated:** January 14, 2026
 **Version:** 1.0.0
-**Maintainer:** Nexa Assistant Team
+**Maintainer:** Alisa Assistant Team

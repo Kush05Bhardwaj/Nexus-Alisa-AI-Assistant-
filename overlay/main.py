@@ -1,12 +1,11 @@
 """
-Nexa Assistant - Overlay Entry Point
+Alisa Assistant - Overlay Entry Point
 Integrates avatar UI with WebSocket client using thread-safe communication
 Also allows voice modules to directly control the avatar
 """
 import threading
 import asyncio
-import tkinter as tk
-from avatar_window import AvatarWindow
+import avatar_window
 import avatar_controller
 import websockets
 
@@ -14,24 +13,20 @@ WS_URL = "ws://127.0.0.1:8000/ws/chat"
 
 class AvatarApp:
     def __init__(self):
-        self.avatar_window = None
         self.ws_task = None
         self.loop = None
-        
+    
     def safe_start_talking(self):
         """Thread-safe way to start talking animation"""
-        if self.avatar_window:
-            self.avatar_window.root.after(0, self.avatar_window.start_talking)
+        avatar_window.root.after(0, avatar_window.start_talking)
     
     def safe_stop_talking(self):
         """Thread-safe way to stop talking animation"""
-        if self.avatar_window:
-            self.avatar_window.root.after(0, self.avatar_window.stop_talking)
+        avatar_window.root.after(0, avatar_window.stop_talking)
     
     def safe_on_emotion(self, emotion: str):
         """Thread-safe way to handle emotion"""
-        if self.avatar_window:
-            self.avatar_window.root.after(0, lambda: avatar_controller.on_emotion(emotion))
+        avatar_window.root.after(0, lambda: avatar_controller.on_emotion(emotion))
     
     async def listen_to_backend(self):
         """WebSocket listener running in background thread"""
@@ -81,15 +76,8 @@ class AvatarApp:
     def run(self):
         """Start the avatar application"""
         print("=" * 50)
-        print("🤖 Nexa Assistant - Avatar Overlay")
+        print("🤖 Alisa Assistant - Avatar Overlay")
         print("=" * 50)
-        
-        # Create avatar window
-        self.avatar_window = AvatarWindow()
-        
-        # Register avatar window with controller so voice modules can control it
-        avatar_controller.set_avatar_window(self.avatar_window)
-        print("🎨 Avatar window registered with controller")
         
         # Start WebSocket listener in background
         self.start_websocket_thread()
@@ -97,8 +85,9 @@ class AvatarApp:
         # Run Tkinter UI in main thread
         print("🎨 Starting avatar UI...")
         print("💡 TIP: Voice output will now trigger avatar animations!")
+        print("💡 TIP: Emotions will change avatar expressions!")
         print("💡 Right-click on avatar to close")
-        self.avatar_window.run()
+        avatar_window.run()
 
 if __name__ == "__main__":
     app = AvatarApp()
