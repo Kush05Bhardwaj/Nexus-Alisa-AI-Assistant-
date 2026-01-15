@@ -29,12 +29,11 @@ if (-Not $packages) {
 }
 
 # Start server
-Write-Host "`n" + "=" * 60 -ForegroundColor Cyan
-Write-Host "🌐 Starting FastAPI server on http://127.0.0.1:8000" -ForegroundColor Green
-Write-Host "📡 WebSocket: ws://127.0.0.1:8000/ws/chat" -ForegroundColor Yellow
-Write-Host "⏱️  WebSocket timeout: 300s (5 minutes)" -ForegroundColor Gray
-Write-Host "=" -NoNewline -ForegroundColor Cyan
-Write-Host "=" * 59 -ForegroundColor Cyan
+Write-Host "`n============================================================" -ForegroundColor Cyan
+Write-Host "Starting FastAPI server on http://127.0.0.1:8000" -ForegroundColor Green
+Write-Host "WebSocket: ws://127.0.0.1:8000/ws/chat" -ForegroundColor Yellow
+Write-Host "WebSocket timeout: 300s - 5 minutes" -ForegroundColor Gray
+Write-Host "============================================================" -ForegroundColor Cyan
 Write-Host ""
 
 # Start with extended timeouts to prevent idle disconnections

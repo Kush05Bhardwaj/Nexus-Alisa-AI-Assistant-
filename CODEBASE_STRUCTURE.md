@@ -1,203 +1,393 @@
-# 📁 Alisa Assistant - Complete Codebase Structure
+# 📁 Alisa Assistant - Codebase Structure
 
-Complete documentation of all files, their purposes, and how they work together.
+Complete documentation of project architecture and file organization.
 
 ---
 
 ## 📊 Project Overview
 
-**Alisa Assistant** is a desktop AI companion with three main components:
-1. **Backend** - FastAPI server with LLM integration
-2. **Overlay** - Animated avatar window using Tkinter
-3. **Voice** - Speech input/output with optional RVC voice conversion
+**Alisa Assistant** is a modular desktop AI companion with four main components:
+1. **Backend** - FastAPI server with LLM integration and memory
+2. **Overlay** - Animated avatar window with emotion expressions
+3. **Voice** - Speech I/O with TTS, STT, and optional RVC
+4. **Vision** - Presence detection and screen analysis
 
 ---
 
 ## 🗂️ Directory Structure
 
 ```
-AlisaAssistant/
-├── 📂 backend/                  # FastAPI backend server
-│   ├── 📂 app/                  # Application code
-│   │   ├── main.py             ⭐ FastAPI entry point & routes
-│   │   ├── ws.py               ⭐ WebSocket chat handler
-│   │   ├── llm_client.py       ⭐ LLM streaming integration
-│   │   ├── emotion.py          📊 Extract emotion from responses
-│   │   ├── memory.py           💾 Short-term conversation buffer
-│   │   ├── memory_long.py      💾 Long-term SQLite storage
-│   │   ├── prompt.py           📝 System prompt & personality
-│   │   ├── modes.py            🎭 Conversation mode management
-│   │   ├── db.py               🗄️  Database configuration
-│   │   ├── models.py           📋 SQLAlchemy database models
-│   │   └── schemas.py          📋 Pydantic data validation
-│   └── requirements.txt        📦 Backend Python dependencies
+NexaAssistant/
+├── backend/                     # FastAPI backend server
+│   ├── app/
+│   │   ├── main.py             # FastAPI entry point & routes
+│   │   ├── ws.py               # WebSocket chat handler
+│   │   ├── llm_client.py       # LLM streaming integration
+│   │   ├── emotion.py          # Emotion extraction from responses
+│   │   ├── memory.py           # Short-term conversation buffer
+│   │   ├── memory_long.py      # SQLite persistent storage
+│   │   ├── prompt.py           # System prompt & personality
+│   │   ├── modes.py            # Conversation mode management
+│   │   ├── db.py               # Database configuration
+│   │   ├── models.py           # SQLAlchemy models
+│   │   └── schemas.py          # Pydantic schemas
+│   ├── requirements.txt
+│   └── README.md               # Backend documentation
 │
-├── 📂 overlay/                  # Avatar overlay window
-│   ├── 📂 assets/              # Avatar images
-│   │   ├── base.png           🎨 Base avatar image
-│   │   ├── eyes_closed.png    👁️  Blinking animation layer
-│   │   └── mouth_open.png     💬 Talking animation layer
-│   ├── main.py                ⭐ Overlay entry point & WebSocket client
-│   ├── avatar_window.py       🖼️  Tkinter UI & animation logic
-│   ├── avatar_controller.py   🎮 Business logic & state management
-│   └── requirements.txt       📦 Overlay Python dependencies
+├── overlay/                     # Avatar overlay window
+│   ├── assets/
+│   │   ├── base.png           # Neutral expression
+│   │   ├── happy.png          # Happy expression
+│   │   ├── teasing.png        # Teasing expression
+│   │   ├── serious.png        # Serious expression
+│   │   ├── calm.png           # Calm expression
+│   │   ├── sad.png            # Sad expression
+│   │   ├── eyes_closed.png    # Blinking layer
+│   │   └── mouth_open.png     # Talking layer
+│   ├── main.py                # Entry point & WebSocket client
+│   ├── avatar_window.py       # Tkinter UI & animations
+│   ├── avatar_controller.py   # State management
+│   ├── requirements.txt
+│   └── README.md              # Overlay documentation
 │
-├── 📂 voice/                    # Voice input/output system
-│   ├── 📂 rvc/                 # RVC voice conversion (optional)
-│   │   ├── 📂 weights/        # RVC model weights (.pth files)
-│   │   ├── 📂 index/          # RVC feature index (.index files)
-│   │   └── inferencer.py      🔄 RVC inference engine
-│   ├── text_chat.py           ⭐ Text input + voice output chat
-│   ├── voice_chat.py          ⭐ Full voice input/output chat
-│   ├── voice_input.py         🎤 Speech-to-text (Whisper)
-│   ├── voice_output.py        🔊 Basic TTS (pyttsx3 fallback)
-│   ├── voice_output_edge.py   🔊 Edge TTS (recommended)
-│   ├── voice_output_rvc.py    🔊 Edge TTS + RVC conversion
-│   ├── voice_config.py        ⚙️  Voice settings & customization
-│   ├── install_voice.ps1      📥 Voice dependencies installer
-│   ├── requirements.txt       📦 Voice Python dependencies
-│   ├── README.md              📚 Voice module documentation
-│   └── VOICE_SETUP.md         📚 Voice setup guide
+├── voice/                       # Voice I/O system
+│   ├── rvc/                    # RVC voice conversion (optional)
+│   │   ├── inferencer.py      # RVC inference engine
+│   │   ├── weights/           # Model weights (.pth)
+│   │   └── index/             # Feature index (.index)
+│   ├── text_chat_v2.py        # Text input + voice output
+│   ├── voice_chat_optimized.py # Full voice conversation
+│   ├── voice_input.py         # Speech-to-text
+│   ├── voice_output_edge.py   # Edge TTS
+│   ├── voice_output_rvc.py    # Edge TTS + RVC
+│   ├── voice_config.py        # Voice settings
+│   ├── requirements.txt
+│   └── README.md              # Voice documentation
 │
-├── 📜 Startup Scripts (PowerShell)
-│   ├── start_backend.ps1      🚀 Start FastAPI backend
-│   ├── start_overlay.ps1      🚀 Start avatar overlay
-│   ├── start_text_chat.ps1    🚀 Start text chat mode
-│   └── start_voice.ps1        🚀 Start voice chat mode
+├── vision/                      # Vision detection system
+│   ├── vision_client.py       # Webcam presence detection
+│   ├── vision_client_screen.py # Screen content analysis
+│   ├── webcam.py              # Webcam capture
+│   ├── face_emotion.py        # Face detection & emotion
+│   ├── screen_capture.py      # Screenshot capture
+│   ├── screen_analyze.py      # Screen analysis
+│   ├── requirements.txt
+│   └── README.md              # Vision documentation
 │
-├── 📚 Documentation
-│   ├── README.md              📖 Main project README
-│   ├── DEVELOPMENT.md         🛠️  Development guide
-│   ├── QUICKSTART.md          ⚡ Quick start guide
-│   └── CODEBASE_STRUCTURE.md  📁 This file
+├── Startup Scripts (PowerShell)
+│   ├── start_backend.ps1      # Start backend server
+│   ├── start_overlay.ps1      # Start avatar overlay
+│   ├── start_text_chat.ps1    # Text chat mode
+│   ├── start_voice.ps1        # Voice chat mode
+│   ├── start_vision.ps1       # Webcam vision
+│   └── start_vision_screen.ps1 # Screen analysis
 │
-└── 🗄️  Data Files
-    └── alisa_memory.db        💾 SQLite database (auto-generated)
+├── Documentation
+│   ├── README.md              # Main project README
+│   ├── CODEBASE_STRUCTURE.md  # This file
+│   └── [Module READMEs]       # See each module folder
+│
+└── Data Files
+    ├── alisa_memory.db        # SQLite conversation history
+    └── view_history.py        # View conversation history
 ```
 
 ---
 
-## 📘 Backend Component Details
+## 🔧 Backend Component
 
-### Core Application Files
+### Core Files
 
-#### `backend/app/main.py` ⭐
-**Purpose:** FastAPI application entry point
-
-**Key Features:**
+**`main.py`** - FastAPI application entry
 - Initializes FastAPI app
-- Configures CORS for WebSocket connections
-- Defines HTTP health check endpoint (`/`)
-- Registers WebSocket route (`/ws/chat`)
-- Initializes database on startup
+- Configures CORS for WebSocket
+- Health check endpoint (`/`)
+- WebSocket route (`/ws/chat`)
+- Database initialization
 
-**Dependencies:**
-- `ws.py` - WebSocket handler
-- `db.py` - Database initialization
-
----
-
-#### `backend/app/ws.py` ⭐
-**Purpose:** WebSocket chat handler with broadcasting
-
-**Key Features:**
-- Manages WebSocket client connections list
-- Handles real-time chat messages
+**`ws.py`** - WebSocket chat handler
+- Manages client connections
+- Handles chat messages
 - Streams LLM responses token-by-token
-- **Broadcasts** tokens to ALL connected clients (chat client + overlay)
-- Processes `/mode` commands for conversation modes
-- Manages short-term and long-term memory
+- Broadcasts to all clients (chat + overlay)
+- Processes `/mode` commands
+- Manages memory (short + long term)
 
-**Message Flow:**
-```
-User Input → WebSocket → LLM Client → Token Stream
-                ↓
-    Broadcast to ALL clients:
-    - [token] - Response text chunks
-    - [EMOTION]emotion - Detected emotion
-    - [END] - Response complete
-    - [MODE CHANGED] - Mode switch confirmed
-```
+**`llm_client.py`** - LLM integration
+- Connects to local LLM server
+- Async token streaming
+- Default: `http://127.0.0.1:8080/v1/chat/completions`
 
-**Key Functions:**
-- `broadcast_message(message, exclude=None)` - Send to all connected clients
-- `websocket_chat(websocket)` - Main chat loop
+**`emotion.py`** - Emotion extraction
+- Extracts `<emotion=...>` tags from responses
+- Validates emotions
+- Returns clean text + emotion
 
-**Dependencies:**
-- `llm_client.py` - LLM integration
-- `memory.py` - Short-term memory
-- `memory_long.py` - Long-term storage
-- `emotion.py` - Emotion extraction
-- `modes.py` - Mode management
-- `prompt.py` - System prompts
+**`memory.py`** - Short-term memory
+- In-memory conversation buffer
+- Stores ~10 recent messages
+- Fast access for current session
 
----
+**`memory_long.py`** - Long-term storage
+- SQLite persistent storage
+- Auto-loads last 3000 tokens on startup
+- Token-aware trimming
+- Conversation history management
 
-#### `backend/app/llm_client.py` ⭐
-**Purpose:** LLM integration and token streaming
+**`prompt.py`** - System prompt
+- Alisa's personality definition
+- Customizable character traits
 
-**Key Features:**
-- Connects to local LLM server (llama.cpp server)
-- Streams responses token-by-token (async generator)
-- Handles API requests to `http://127.0.0.1:8080/v1/chat/completions`
+**`modes.py`** - Conversation modes
+- `default`, `study`, `chill`, `creative`
+- Mode-specific behaviors
 
-**Configuration:**
-```python
-LLM_API_URL = "http://127.0.0.1:8080/v1/chat/completions"
-MODEL_NAME = "llama-3.2-3b-instruct"  # or your model
+### WebSocket Protocol
+
+**Client → Server:**
+```json
+{"message": "Hello!"}
+{"message": "/mode study"}
 ```
 
-**Key Function:**
-```python
-async def stream_llm_response(messages: list[dict]) -> AsyncGenerator[str, None]:
-    # Yields tokens one at a time
-    yield token
+**Server → Client:**
 ```
-
-**Dependencies:**
-- External LLM server (llama.cpp or compatible)
-
----
-
-#### `backend/app/emotion.py` 📊
-**Purpose:** Extract emotion tags from LLM responses
-
-**How It Works:**
-1. Scans response text for `<emotion=...>` tags
-2. Validates against allowed emotions
-3. Removes tag from text, returns clean text + emotion
-
-**Allowed Emotions:**
-- `happy` - Cheerful, excited
-- `calm` - Relaxed, peaceful
-- `teasing` - Playful, mischievous
-- `shy` - Embarrassed, bashful
-- `serious` - Focused, stern
-- `sad` - Disappointed, melancholic
-- `neutral` - Default state
-
-**Key Function:**
-```python
-def extract_emotion(text: str) -> tuple[str, str]:
-    # Returns: (emotion, clean_text)
+[token]              # Response chunks
+[EMOTION]happy       # Emotion update
+[END]                # Response complete
+[MODE CHANGED]       # Mode switch
+[VISION]data         # Vision updates
 ```
 
 ---
 
-#### `backend/app/memory.py` 💾
-**Purpose:** Short-term conversation memory (in-memory buffer)
+## 🎭 Overlay Component
 
-**Features:**
-- Stores recent messages in memory
-- Maintains conversation context
-- Configurable message limit (default: 10 messages)
+### Core Files
 
-**Key Class:**
-```python
-class MemoryBuffer:
-    def add(role: str, content: str)  # Add message
-    def get() -> list[dict]           # Get all messages
-    def clear()                        # Clear memory
+**`main.py`** - Entry point
+- WebSocket client to backend
+- Receives emotion/talk signals
+- Forwards to avatar controller
+
+**`avatar_window.py`** - Tkinter UI
+- Transparent window
+- Image compositing
+- Animation rendering
+- Drag functionality
+
+**`avatar_controller.py`** - Business logic
+- State management
+- Emotion switching
+- Talking animation
+- Blinking animation
+
+### Animation System
+
+**Layers:**
+1. Base (emotion expression)
+2. Eyes (blink overlay)
+3. Mouth (talk overlay)
+
+**Triggers:**
+- `[EMOTION]<name>` - Switch expression
+- `[TALK_START]` - Start mouth animation
+- `[TALK_END]` - Stop mouth animation
+
+---
+
+## 🎙️ Voice Component
+
+### Core Files
+
+**`text_chat_v2.py`** - Text + voice mode
+- Text input from terminal
+- Voice output via Edge TTS
+- WebSocket backend communication
+
+**`voice_chat_optimized.py`** - Full voice mode
+- Speech input via Whisper
+- Voice output via Edge TTS
+- Continuous conversation loop
+
+**`voice_input.py`** - Speech-to-text
+- Faster Whisper integration
+- Microphone recording
+- Models: tiny, base, small, medium, large
+
+**`voice_output_edge.py`** - Edge TTS
+- Microsoft Edge TTS API
+- Multiple voice options
+- Customizable rate/pitch
+
+**`voice_output_rvc.py`** - Edge TTS + RVC
+- RVC voice conversion
+- Custom anime voice
+- Pitch shifting
+
+**`voice_config.py`** - Settings
+- Voice selection
+- Speech rate/pitch
+- RVC parameters
+
+### RVC Structure
+
+**`rvc/inferencer.py`** - RVC engine
+**`rvc/weights/`** - Model files (.pth)
+**`rvc/index/`** - Feature index (.index)
+
+---
+
+## 👁️ Vision Component
+
+### Core Files
+
+**`vision_client.py`** - Webcam mode
+- Face detection
+- Presence tracking
+- Attention estimation
+- Sends updates to backend
+
+**`vision_client_screen.py`** - Screen mode
+- Screenshot capture
+- Content analysis
+- Context understanding
+
+**`webcam.py`** - Camera capture
+- OpenCV webcam interface
+- Frame processing
+- Face detection
+
+**`face_emotion.py`** - Emotion detection
+- Haar Cascade face detection
+- Basic emotion estimation
+- Ready for CNN integration
+
+**`screen_capture.py`** - Screenshot
+- Screen capture utility
+- Multi-monitor support
+
+**`screen_analyze.py`** - Analysis
+- Screen content understanding
+- Application detection
+
+---
+
+## 🚀 Startup Scripts
+
+**`start_backend.ps1`**
+- Activates venv
+- Starts uvicorn server
+
+**`start_overlay.ps1`**
+- Starts avatar overlay
+
+**`start_text_chat.ps1`**
+- Starts text chat with voice
+
+**`start_voice.ps1`**
+- Starts full voice conversation
+
+**`start_vision.ps1`**
+- Starts webcam vision
+
+**`start_vision_screen.ps1`**
+- Starts screen analysis
+
+---
+
+## 💾 Data Files
+
+**`alisa_memory.db`** - SQLite database
+- Conversation history
+- Auto-created on first run
+- Persistent across sessions
+
+**`view_history.py`** - Utility script
+- View conversation history
+- Debug memory system
+
+---
+
+## 🔄 Communication Flow
+
+```
+User Input
+    ↓
+Voice/Text Client → WebSocket → Backend → LLM Server
+                        ↓
+                   Broadcast
+                    ↙    ↘
+            Client      Overlay
+            (voice)     (animation)
+```
+
+---
+
+## 📦 Dependencies
+
+### Backend
+- fastapi, uvicorn
+- websockets
+- sqlalchemy
+- aiohttp
+- pydantic
+
+### Overlay
+- tkinter (built-in)
+- Pillow
+- websockets
+
+### Voice
+- faster-whisper
+- edge-tts
+- sounddevice
+- soundfile
+- websockets
+
+### Vision
+- opencv-python
+- numpy
+- Pillow
+- websockets
+- mss (for screen capture)
+
+---
+
+## 🎯 Key Features by Component
+
+**Backend:**
+- LLM streaming
+- Persistent memory
+- Emotion detection
+- Multi-mode conversations
+- WebSocket broadcasting
+
+**Overlay:**
+- 6 emotion expressions
+- Smooth animations
+- Transparent window
+- Audio-synced mouth
+
+**Voice:**
+- Speech-to-text (Whisper)
+- Text-to-speech (Edge TTS)
+- RVC voice conversion
+- Multiple voices
+
+**Vision:**
+- Presence detection
+- Attention tracking
+- Face emotion estimation
+- Screen analysis
+
+---
+
+For detailed module documentation, see:
+- [Backend README](backend/README.md)
+- [Overlay README](overlay/README.md)
+- [Voice README](voice/README.md)
+- [Vision README](vision/README.md)
 ```
 
 ---

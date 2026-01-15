@@ -7,11 +7,22 @@ from .emotion import extract_emotion
 from .prompt import build_prompt
 from typing import List
 import asyncio
+import time
 
 memory = MemoryBuffer()
 
 # Store all connected WebSocket clients
 connected_clients: List[WebSocket] = []
+
+# Vision state tracking
+vision_state = {
+    "presence": "unknown",  # "present", "absent", "unknown"
+    "attention": "unknown",  # "focused", "distracted", "unknown"
+    "emotion": "neutral",
+    "last_update": 0,
+    "state_duration": 0,  # How long in current state (seconds)
+    "last_reaction": 0,  # Last time Alisa reacted to vision (to avoid spam)
+}
 
 async def broadcast_message(message: str, exclude: WebSocket = None):
     """Send a message to all connected clients, optionally excluding one"""
@@ -73,6 +84,137 @@ async def websocket_chat(websocket: WebSocket):
                 # Broadcast to overlay only (not back to sender)
                 print("📢 Broadcasting [SPEECH_END] to overlay")
                 await broadcast_message("[SPEECH_END]", exclude=websocket)
+                continue
+
+            # Handle vision system input - user presence/emotion detection
+            if user_input.startswith("[VISION_FACE]"):
+                state = user_input.replace("[VISION_FACE]", "")
+                current_time = time.time()
+                
+                # Update vision state
+                old_presence = vision_state["presence"]
+                old_attention = vision_state["attention"]
+                
+                if state == "present":
+                    vision_state["presence"] = "present"
+                    print(f"👁️ Vision: User present (was: {old_presence})")
+                elif state == "absent":
+                    vision_state["presence"] = "absent"
+                    print(f"👁️ Vision: User absent (was: {old_presence})")
+                elif state == "focused":
+                    vision_state["attention"] = "focused"
+                    print(f"👁️ Vision: User focused (was: {old_attention})")
+                elif state == "distracted":
+                    vision_state["attention"] = "distracted"
+                    print(f"👁️ Vision: User distracted (was: {old_attention})")
+                else:
+                    vision_state["emotion"] = state
+                    print(f"👁️ Vision: User emotion - {state}")
+                
+                vision_state["last_update"] = current_time
+                
+                # Intelligent reaction logic: Only react when meaningful
+                # Don't spam reactions - wait at least 30 seconds between reactions
+                time_since_last_reaction = current_time - vision_state["last_reaction"]
+                should_react = False
+                reaction_prompt = ""
+                
+                print(f"🔍 Debug - Time since last reaction: {time_since_last_reaction:.1f}s")
+                
+                # User returned after being away
+                if (old_presence == "absent" or old_presence == "unknown") and vision_state["presence"] == "present":
+                    print(f"✅ Detected: User returned (old: {old_presence} → new: present)")
+                    if time_since_last_reaction > 30:
+                        should_react = True
+                        reaction_prompt = "The user just came back to their computer. Welcome them back warmly but casually."
+                        vision_state["last_reaction"] = current_time
+                        print("💭 Will react: User returned")
+                    else:
+                        print(f"⏸️ Not reacting yet (need {30 - time_since_last_reaction:.1f}s more)")
+                
+                # User went away (might comment if they were in middle of conversation)
+                elif old_presence == "present" and vision_state["presence"] == "absent":
+                    print(f"❌ Detected: User left (memory items: {len(memory.get())})")
+                    # Only comment if conversation was recent (within last 2 minutes)
+                    if len(memory.get()) > 0 and time_since_last_reaction > 60:
+                        should_react = True
+                        reaction_prompt = "The user just left. Make a brief, tsundere-style comment about them leaving."
+                        vision_state["last_reaction"] = current_time
+                        print("💭 Will react: User left during conversation")
+                    else:
+                        print(f"⏸️ Not reacting (memory: {len(memory.get())}, time: {time_since_last_reaction:.1f}s)")
+                
+                # User got distracted (looking away for a while)
+                elif old_attention == "focused" and vision_state["attention"] == "distracted":
+                    print(f"😴 Detected: User distracted (memory items: {len(memory.get())})")
+                    # Only comment if they were actively chatting
+                    if len(memory.get()) > 2 and time_since_last_reaction > 60:
+                        should_react = True
+                        reaction_prompt = "The user is looking away while you're talking. Tease them gently or ask if they're listening."
+                        vision_state["last_reaction"] = current_time
+                        print("💭 Will react: User got distracted")
+                    else:
+                        print(f"⏸️ Not reacting (memory: {len(memory.get())}, time: {time_since_last_reaction:.1f}s)")
+                
+                # Generate reaction if needed
+                if should_react:
+                    print(f"💭 Alisa reacting to vision event...")
+                    print(f"📝 Reaction prompt: {reaction_prompt}")
+                    
+                    memories = fetch_recent_memories()
+                    system_prompt = build_prompt(
+                        get_mode_prompt(), 
+                        memories, 
+                        vision_context=reaction_prompt
+                    )
+                    
+                    messages = [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "system", "content": reaction_prompt}  # Direct instruction
+                    ]
+                    
+                    full_response = ""
+                    try:
+                        async for token in stream_llm_response(messages):
+                            full_response += token
+                            # Broadcast to ALL clients (text_chat, overlay, etc) - NOT just vision client
+                            await broadcast_message(token, exclude=None)
+                        
+                        emotion, clean_text = extract_emotion(full_response)
+                        memory.add("assistant", clean_text)
+                        save_memory(emotion, clean_text)
+                        
+                        # Send emotion and end markers to all clients
+                        await broadcast_message(f"[EMOTION]{emotion}", exclude=None)
+                        await broadcast_message("[END]", exclude=None)
+                        
+                        print(f"✅ Vision reaction sent to all clients: {clean_text[:50]}...")
+                        
+                    except Exception as e:
+                        print(f"❌ Error generating vision reaction: {e}")
+                        import traceback
+                        traceback.print_exc()
+                
+                continue
+
+            # Handle vision system screen context
+            if user_input.startswith("[VISION_SCREEN]"):
+                content = user_input.replace("[VISION_SCREEN]", "")
+                
+                # Parse window and text
+                parts = content.split(" | ", 1)
+                window = parts[0].strip() if len(parts) > 0 else ""
+                text = parts[1].strip() if len(parts) > 1 else ""
+                
+                # Store screen context in memory (system message)
+                screen_context = f"Screen context: {window}"
+                if text:
+                    screen_context += f" - Content visible: {text[:200]}"
+                
+                memory.add("system", screen_context)
+                print(f"📺 Screen context stored: {window[:50]}...")
+                
+                # Don't send response, just acknowledge and store
                 continue
 
             # Handle mode changes

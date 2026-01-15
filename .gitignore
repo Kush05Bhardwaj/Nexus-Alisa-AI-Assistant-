@@ -4,11 +4,13 @@ __pycache__/
 *$py.class
 *.so
 .Python
+*.pyc
 
 # Virtual Environments
 venv/
 ENV/
 env/
+.venv/
 
 # Database
 *.db
@@ -21,24 +23,37 @@ env/
 *.swp
 *.swo
 *~
+.DS_Store
 
 # OS
 .DS_Store
 Thumbs.db
+desktop.ini
 
 # Logs
 *.log
+logs/
 
 # Distribution / packaging
 dist/
 build/
 *.egg-info/
+.eggs/
 
 # pytest
 .pytest_cache/
+.tox/
 
 # mypy
 .mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Coverage
+.coverage
+.coverage.*
+htmlcov/
+*.cover
 
 # Voice files (temporary)
 voice/base.wav
@@ -46,7 +61,36 @@ voice/alisa.wav
 voice/input.wav
 voice/output.wav
 *.wav
+*.mp3
 
-# RVC models (too large for git)
+# RVC models (too large for git - add manually if needed)
 voice/rvc/weights/*.pth
 voice/rvc/index/*.index
+
+# Environment variables
+.env
+.env.local
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Documentation temp files
+*.tmp
+*.bak
+*~
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Mac
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Test files
+test_*.wav
+test_*.mp3
+temp_*
+

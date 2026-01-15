@@ -1,0 +1,8 @@
+opencv-python>=4.8.0
+mediapipe==0.10.9
+numpy>=1.24.0
+websockets>=11.0
+mss>=9.0.0
+pytesseract>=0.3.10
+pywin32>=306
+Pillow>=10.0.0

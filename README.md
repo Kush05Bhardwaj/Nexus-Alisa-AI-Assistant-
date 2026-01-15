@@ -1,6 +1,6 @@
 # 🌟 Alisa Assistant - AI Desktop Companion
 
-Meet **Alisa**, your cute tsundere AI desktop companion! An intelligent assistant featuring real-time avatar overlay, voice chat, and LLM integration.
+Your cute tsundere AI desktop companion with real-time avatar overlay, voice chat, vision detection, and LLM integration.
 
 ![Status](https://img.shields.io/badge/status-active-success)
 ![Python](https://img.shields.io/badge/python-3.10+-blue)
@@ -10,33 +10,11 @@ Meet **Alisa**, your cute tsundere AI desktop companion! An intelligent assistan
 
 ## ✨ Features
 
-🎭 **Animated Avatar Overlay**
-- Transparent, always-on-top window
-- Talking and blinking animations
-- Draggable and interactive
-
-🗣️ **Voice Chat System**
-- Text-to-speech with customizable voices
-- Speech-to-text (Whisper integration)
-- Optional RVC voice conversion for anime-style voice
-
-🧠 **Smart AI Backend**
-- Real-time LLM streaming responses
-- **Persistent conversation history** (remembers context across restarts)
-- Smart token management (keeps last ~3000 tokens)
-- Multiple conversation modes
-- Emotion detection and expression
-
-💬 **Flexible Chat Modes**
-- Text chat with voice output
-- Full voice conversation
-- WebSocket-based real-time communication
-
-💾 **Conversation Memory**
-- Persistent SQLite database storage
-- Automatic context loading on startup
-- View/clear history with simple commands
-- Token-aware trimming for optimal performance
+- 🎭 **Animated Avatar** - Transparent overlay with 6 emotions and smooth animations
+- 🗣️ **Voice System** - Speech-to-text, text-to-speech, optional RVC voice conversion
+- 👁️ **Vision Detection** - Webcam presence tracking, attention detection, emotion estimation
+- 🧠 **Smart AI Backend** - LLM streaming, persistent memory, emotion-aware responses
+- 💾 **Conversation Memory** - SQLite storage with auto-loading and token management
 
 ---
 
@@ -45,130 +23,111 @@ Meet **Alisa**, your cute tsundere AI desktop companion! An intelligent assistan
 ### Prerequisites
 - Python 3.10+
 - Windows (for PowerShell scripts)
-- Local LLM server (llama.cpp recommended)
+- Local LLM server (llama.cpp recommended on `http://127.0.0.1:8080`)
 
-### 1️⃣ Clone Repository
+### Installation
+
+1. **Clone Repository**
 ```powershell
 git clone https://github.com/Kush05Bhardwaj/Nexus-Alisa-AI-Assistant-.git
-cd AlisaAssistant
+cd NexaAssistant
 ```
 
-### 2️⃣ Start Backend
+2. **Start Backend**
 ```powershell
 .\start_backend.ps1
 ```
-*Backend runs on `http://127.0.0.1:8000`*
 
-### 3️⃣ Start Overlay (Optional)
+3. **Start Components** (in separate terminals)
 ```powershell
-.\start_overlay.ps1
-```
-*Shows animated avatar on screen*
-
-### 4️⃣ Start Chat
-```powershell
-# Text chat with voice output (recommended for beginners)
-.\start_text_chat.ps1
-
-# OR full voice chat (requires microphone)
-.\start_voice.ps1
+.\start_overlay.ps1      # Avatar overlay (optional)
+.\start_vision.ps1       # Vision detection (optional)
+.\start_text_chat.ps1    # Text chat with voice output
+# OR
+.\start_voice.ps1        # Full voice conversation
 ```
 
-**That's it!** 🎉 Type or speak to Alisa and she'll respond with voice!
+That's it! 🎉
 
 ---
 
 ## 📁 Project Structure
 
 ```
-AlisaAssistant/
-├── 📂 backend/          # FastAPI server with LLM integration
-├── 📂 overlay/          # Animated avatar window (Tkinter)
-├── 📂 voice/            # Voice I/O and TTS/STT
-├── 🚀 start_*.ps1       # Easy startup scripts
-└── 📚 docs/             # Documentation
+NexaAssistant/
+├── backend/          # FastAPI server + LLM integration
+├── overlay/          # Animated avatar window
+├── voice/            # Voice I/O + TTS/STT
+├── vision/           # Presence detection + screen analysis
+└── start_*.ps1       # Startup scripts
 ```
 
-📖 **For detailed file-by-file documentation, see [CODEBASE_STRUCTURE.md](CODEBASE_STRUCTURE.md)**
+**Detailed documentation in each module:**
+- [Backend README](backend/README.md)
+- [Overlay README](overlay/README.md)
+- [Voice README](voice/README.md)
+- [Vision README](vision/README.md)
 
 ---
 
-## 🎮 How It Works
+## � Usage
 
-```
-┌─────────────┐
-│    User     │ Types/Speaks
-└──────┬──────┘
-       │
-       ▼
-┌─────────────────────┐         ┌──────────────┐
-│   Chat Client       │         │  LLM Server  │
-│ (text/voice chat)   │◄───────►│ (llama.cpp)  │
-└──────┬──────────────┘         └──────────────┘
-       │ WebSocket
-       ▼
-┌─────────────────────┐
-│  Backend Server     │ Broadcasts to:
-│  (FastAPI/WS)       ├─→ Chat Client (displays + speaks)
-└─────────────────────┘ └─→ Overlay (avatar animations)
-```
-
-**Key Components:**
-1. **Backend** - Processes messages, streams LLM responses
-2. **Overlay** - Displays animated avatar, syncs with speech
-3. **Voice** - Handles TTS/STT, customizable voices
-
----
-
-## 🎯 Usage Examples
-
-### Text Chat Mode (Easiest)
+### Text Chat Mode
 ```powershell
 .\start_text_chat.ps1
 ```
-- Type messages in terminal
-- Hear Alisa's voice responses
-- See avatar animations (if overlay running)
+- Type messages
+- Hear voice responses
+- See avatar animations
 
 ### Voice Chat Mode
 ```powershell
 .\start_voice.ps1
 ```
-- Speak to Alisa
+- Speak naturally
 - Get voice responses
-- Natural conversation flow
+- Full conversation
 
 ### Change Conversation Mode
 ```
-You: /mode study
-Alisa: ✓ Mode changed successfully!
+/mode study      # Study assistant
+/mode chill      # Casual chat
+/mode creative   # Storytelling
+/mode default    # Standard tsundere
 ```
 
-**Available Modes:**
-- `default` - Standard tsundere personality
-- `study` - Focused educational assistant
-- `chill` - Relaxed casual chat
-- `creative` - Imaginative storytelling
-
-### Customize Voice
-Edit `voice/voice_config.py`:
-```python
-SELECTED_VOICE = "ana"      # Options: ana, nanami, xiaoxiao, etc.
-SPEECH_RATE = "+15%"         # Speed adjustment
-PITCH_SHIFT = "+10Hz"        # Pitch adjustment
-```
-
-Test voices:
+### View Conversation History
 ```powershell
-cd voice
-python test_voice.py
+python view_history.py
 ```
 
 ---
 
-## 🛠️ Installation (Manual)
+## ⚙️ Configuration
 
-If startup scripts don't work, install manually:
+### LLM Server
+Edit `backend/app/llm_client.py`:
+```python
+LLM_API_URL = "http://127.0.0.1:8080/v1/chat/completions"
+MODEL_NAME = "llama-3.2-3b-instruct"
+```
+
+### Voice Settings
+Edit `voice/voice_config.py`:
+```python
+SELECTED_VOICE = "ja-JP-NanamiNeural"  # Change voice
+SPEECH_RATE = "+15%"                    # Adjust speed
+PITCH_SHIFT = "+5Hz"                    # Adjust pitch
+```
+
+### System Prompt
+Edit `backend/app/prompt.py` to customize personality
+
+---
+
+## 🛠️ Manual Installation
+
+If startup scripts don't work:
 
 ### Backend
 ```powershell
@@ -182,6 +141,85 @@ uvicorn app.main:app --reload
 ### Overlay
 ```powershell
 cd overlay
+pip install -r requirements.txt
+python main.py
+```
+
+### Voice
+```powershell
+cd voice
+pip install -r requirements.txt
+python text_chat_v2.py
+```
+
+### Vision
+```powershell
+cd vision
+pip install -r requirements.txt
+python vision_client.py
+```
+
+---
+
+## 📚 Documentation
+
+- [QUICK_REFERENCE.md](QUICK_REFERENCE.md) - Command cheat sheet
+- [CODEBASE_STRUCTURE.md](CODEBASE_STRUCTURE.md) - Complete file structure
+- [DEVELOPMENT.md](DEVELOPMENT.md) - Developer guide
+- [Backend README](backend/README.md) - API & memory system
+- [Overlay README](overlay/README.md) - Avatar animations
+- [Voice README](voice/README.md) - TTS/STT & RVC
+- [Vision README](vision/README.md) - Presence detection
+
+---
+
+## 🔧 Requirements
+
+- Python 3.10+
+- Windows 10/11
+- 4GB RAM minimum (8GB+ recommended)
+- GPU recommended (for voice & vision)
+- Webcam (for vision features)
+- Microphone (for voice chat)
+
+---
+
+## 🐛 Troubleshooting
+
+**Backend not starting:**
+- Check if port 8000 is available
+- Verify LLM server is running on port 8080
+
+**Overlay not showing:**
+- Check if images exist in `overlay/assets/`
+- Windows 10/11 required for transparency
+
+**Voice not working:**
+- Check microphone permissions
+- Test with: `python -c "import sounddevice; print(sounddevice.query_devices())"`
+
+**Vision not working:**
+- Check webcam permissions
+- Verify OpenCV installation
+
+---
+
+## 📄 License
+
+MIT License - See LICENSE file
+
+---
+
+## 🙏 Credits
+
+- LLM: llama.cpp
+- Voice: Edge TTS, Faster Whisper
+- RVC: Retrieval-based Voice Conversion
+- Vision: OpenCV, MediaPipe
+
+---
+
+**Made with ❤️ for Alisa**
 python -m venv venv
 .\venv\Scripts\Activate.ps1
 pip install -r requirements.txt
