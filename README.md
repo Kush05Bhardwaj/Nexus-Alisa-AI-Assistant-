@@ -35,16 +35,16 @@ cd NexaAssistant
 
 2. **Start Backend**
 ```powershell
-.\start_backend.ps1
+.\scripts\start_backend.ps1
 ```
 
 3. **Start Components** (in separate terminals)
 ```powershell
-.\start_overlay.ps1      # Avatar overlay (optional)
-.\start_vision.ps1       # Vision detection (optional)
-.\start_text_chat.ps1    # Text chat with voice output
+.\scripts\start_overlay.ps1      # Avatar overlay (optional)
+.\scripts\start_vision.ps1       # Vision detection (optional)
+.\scripts\start_text_chat.ps1    # Text chat with voice output
 # OR
-.\start_voice.ps1        # Full voice conversation
+.\scripts\start_voice.ps1        # Full voice conversation
 ```
 
 That's it! 🎉
@@ -54,15 +54,18 @@ That's it! 🎉
 ## 📁 Project Structure
 
 ```
-NexaAssistant/
+Alisa-AI-Assistant/
 ├── backend/          # FastAPI server + LLM integration
 ├── overlay/          # Animated avatar window
 ├── voice/            # Voice I/O + TTS/STT
 ├── vision/           # Presence detection + screen analysis
-└── start_*.ps1       # Startup scripts
+├── docs/             # 📚 All documentation
+└── scripts/          # 🚀 Startup scripts and utilities
 ```
 
-**Detailed documentation in each module:**
+**Detailed documentation:**
+- [Documentation Index](docs/README.md) - All docs in one place
+- [Scripts Guide](scripts/README.md) - How to use startup scripts
 - [Backend README](backend/README.md)
 - [Overlay README](overlay/README.md)
 - [Voice README](voice/README.md)
@@ -98,7 +101,7 @@ NexaAssistant/
 
 ### View Conversation History
 ```powershell
-python view_history.py
+python .\scripts\view_history.py
 ```
 
 ---
@@ -163,9 +166,19 @@ python vision_client.py
 
 ## 📚 Documentation
 
-- [QUICK_REFERENCE.md](QUICK_REFERENCE.md) - Command cheat sheet
-- [CODEBASE_STRUCTURE.md](CODEBASE_STRUCTURE.md) - Complete file structure
-- [DEVELOPMENT.md](DEVELOPMENT.md) - Developer guide
+### Quick Links
+- **[Documentation Index](docs/README.md)** - All documentation in one place
+- **[Scripts Guide](scripts/README.md)** - How to use all scripts
+
+### Core Documentation
+- [Quick Reference](docs/QUICK_REFERENCE.md) - Command cheat sheet
+- [Codebase Structure](docs/CODEBASE_STRUCTURE.md) - Complete file structure
+- [Development Guide](docs/DEVELOPMENT.md) - Developer guide
+
+### Idle Thought System
+- [Idle Thought Guide](docs/IDLE_THOUGHT_GUIDE.md) - Complete guide with visuals, implementation, testing & examples
+
+### Module Documentation
 - [Backend README](backend/README.md) - API & memory system
 - [Overlay README](overlay/README.md) - Avatar animations
 - [Voice README](voice/README.md) - TTS/STT & RVC
@@ -181,92 +194,6 @@ python vision_client.py
 - GPU recommended (for voice & vision)
 - Webcam (for vision features)
 - Microphone (for voice chat)
-
----
-
-## 🐛 Troubleshooting
-
-**Backend not starting:**
-- Check if port 8000 is available
-- Verify LLM server is running on port 8080
-
-**Overlay not showing:**
-- Check if images exist in `overlay/assets/`
-- Windows 10/11 required for transparency
-
-**Voice not working:**
-- Check microphone permissions
-- Test with: `python -c "import sounddevice; print(sounddevice.query_devices())"`
-
-**Vision not working:**
-- Check webcam permissions
-- Verify OpenCV installation
-
----
-
-## 📄 License
-
-MIT License - See LICENSE file
-
----
-
-## 🙏 Credits
-
-- **Developer**: [Kush05Bhardwaj](https://github.com/Kush05Bhardwaj)
-- LLM: llama.cpp
-- Voice: Edge TTS, Faster Whisper
-- RVC: Retrieval-based Voice Conversion
-- Vision: OpenCV, MediaPipe
-
----
-
-python -m venv venv
-.\venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-python main.py
-```
-
-### Voice
-```powershell
-cd voice
-.\install_voice.ps1
-# OR manually:
-pip install -r requirements.txt
-```
-
----
-
-## 📚 Documentation
-
-- **[CODEBASE_STRUCTURE.md](CODEBASE_STRUCTURE.md)** - Complete file-by-file documentation
-- **[QUICKSTART.md](QUICKSTART.md)** - Quick setup guide
-- **[DEVELOPMENT.md](DEVELOPMENT.md)** - Developer guide
-- **[voice/VOICE_SETUP.md](voice/VOICE_SETUP.md)** - Voice customization guide
-
----
-
-## 🔧 Configuration
-
-### LLM Server
-Edit `backend/app/llm_client.py`:
-```python
-LLM_API_URL = "http://127.0.0.1:8080/v1/chat/completions"
-MODEL_NAME = "llama-3.2-3b-instruct"  # Your model
-```
-
-### Voice Settings
-Edit `voice/voice_config.py`:
-```python
-SELECTED_VOICE = "ana"  # Voice selection
-SPEECH_RATE = "+15%"    # Talking speed
-PITCH_SHIFT = "+10Hz"   # Voice pitch
-```
-
-### WebSocket Connection
-Edit `overlay/main.py` and `voice/text_chat.py`:
-```python
-WS_URL = "ws://127.0.0.1:8000/ws/chat"
-```
 
 ---
 
@@ -298,27 +225,33 @@ Replace images in `overlay/assets/`:
 
 ## 🐛 Troubleshooting
 
-**Backend won't start**
-- Check if port 8000 is in use
-- Verify LLM server is running
+**Backend not starting:**
+- Check if port 8000 is available
+- Verify LLM server is running on port 8080
 - Check dependencies are installed
 
-**Overlay won't connect**
+**Overlay not showing:**
 - Start backend first
-- Check WebSocket URL in `overlay/main.py`
-- Verify backend is on port 8000
-
-**No voice output**
-- Run `.\voice\install_voice.ps1`
-- Check audio output device
-- Verify pygame is installed
-
-**Avatar not animating**
-- Make sure overlay is running
-- Check assets folder has all PNG files
+- Check if images exist in `overlay/assets/`
+- Windows 10/11 required for transparency
 - Verify overlay connects to backend (check console)
 
-**Voice quality issues**
+**Voice not working:**
+- Check microphone permissions
+- Run `.\voice\install_voice.ps1`
+- Check audio output device
+- Test with: `python -c "import sounddevice; print(sounddevice.query_devices())"`
+
+**Vision not working:**
+- Check webcam permissions
+- Verify OpenCV installation
+
+**Avatar not animating:**
+- Make sure overlay is running
+- Check assets folder has all PNG files
+- Verify WebSocket URL in `overlay/main.py`
+
+**Voice quality issues:**
 - Try different voices in `voice_config.py`
 - Adjust speech rate and pitch
 - Consider using RVC for better quality
@@ -362,32 +295,6 @@ Contributions are welcome! Areas for improvement:
 
 ---
 
-## � Conversation History
-
-Alisa remembers your conversations across restarts!
-
-**View recent conversations:**
-```powershell
-python view_history.py
-```
-
-**View more messages:**
-```powershell
-python view_history.py -n 50
-```
-
-**Clear history:**
-```powershell
-python view_history.py --clear
-```
-
-**Check memory usage:**
-```powershell
-curl http://127.0.0.1:8000/history/summary
-```
-
----
-
 ## �📄 License
 
 MIT License - see LICENSE file for details
@@ -409,11 +316,3 @@ MIT License - see LICENSE file for details
 **Issues:** Report bugs on [GitHub Issues](https://github.com/Kush05Bhardwaj/Nexus-Alisa-AI-Assistant-/issues)
 
 **Questions:** Check `CODEBASE_STRUCTURE.md` for detailed documentation
-
----
-
-<div align="center">
-
-🌟 Star this repo if you like it! 🌟
-
-</div>

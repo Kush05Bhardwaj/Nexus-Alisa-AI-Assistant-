@@ -8,11 +8,16 @@ from .prompt import build_prompt
 from typing import List
 import asyncio
 import time
+import random
 
 memory = MemoryBuffer()
 
 # Store all connected WebSocket clients
 connected_clients: List[WebSocket] = []
+
+# Track last user activity for idle thought engine
+last_user_activity = time.time()
+idle_thought_active = False  # Prevent multiple idle thoughts at once
 
 # Vision state tracking
 vision_state = {
@@ -45,6 +50,94 @@ async def broadcast_message(message: str, exclude: WebSocket = None):
         if client in connected_clients:
             connected_clients.remove(client)
 
+async def trigger_idle_response():
+    """Generate and broadcast an idle thought from Alisa"""
+    global idle_thought_active
+    
+    if idle_thought_active:
+        print("⏸️ Idle thought already in progress, skipping")
+        return
+    
+    if len(connected_clients) == 0:
+        print("⏸️ No clients connected, skipping idle thought")
+        return
+    
+    idle_thought_active = True
+    print("💭 Generating idle thought...")
+    
+    try:
+        memories = fetch_recent_memories()
+        
+        # Build context with idle hint
+        idle_context = (
+            "The user has been quiet for a while. "
+            "If it feels natural, say something subtle, light, or observational. "
+            "Do NOT ask direct questions. "
+            "Keep it short. "
+            "Silence is acceptable."
+        )
+        
+        system_prompt = build_prompt(
+            get_mode_prompt(), 
+            memories, 
+            vision_context=idle_context
+        )
+        
+        messages = [
+            {"role": "system", "content": system_prompt}
+        ]
+        
+        full_response = ""
+        
+        async for token in stream_llm_response(messages):
+            full_response += token
+            # Broadcast to ALL clients
+            await broadcast_message(token, exclude=None)
+        
+        emotion, clean_text = extract_emotion(full_response)
+        memory.add("assistant", clean_text)
+        save_memory(emotion, clean_text)
+        
+        # Send emotion and end markers
+        await broadcast_message(f"[EMOTION]{emotion}", exclude=None)
+        await broadcast_message("[END]", exclude=None)
+        
+        print(f"✅ Idle thought sent: {clean_text[:60]}...")
+        
+    except Exception as e:
+        print(f"❌ Error generating idle thought: {e}")
+        import traceback
+        traceback.print_exc()
+    finally:
+        idle_thought_active = False
+
+async def idle_thought_loop():
+    """Background task that occasionally triggers idle thoughts"""
+    global last_user_activity
+    
+    print("🧠 Idle thought engine started")
+    
+    while True:
+        await asyncio.sleep(30)  # Check every 30 seconds
+        
+        idle_time = time.time() - last_user_activity
+        
+        # Only consider idle after 90 seconds
+        if idle_time < 90:
+            continue
+        
+        # Probability gate: 25% chance when idle
+        # This is CRITICAL to prevent spam
+        if random.random() > 0.25:
+            continue
+        
+        # Additional check: don't spam if already spoke recently
+        if idle_thought_active:
+            continue
+        
+        # Trigger the idle thought
+        await trigger_idle_response()
+
 async def keepalive_ping(websocket: WebSocket, interval: int = 20):
     """Send periodic pings to keep connection alive during long LLM generations"""
     try:
@@ -58,6 +151,8 @@ async def keepalive_ping(websocket: WebSocket, interval: int = 20):
         pass
 
 async def websocket_chat(websocket: WebSocket):
+    global last_user_activity
+    
     await websocket.accept()
     connected_clients.append(websocket)
     print(f"✅ Client connected. Total clients: {len(connected_clients)}")
@@ -68,6 +163,11 @@ async def websocket_chat(websocket: WebSocket):
     try:
         while True:
             user_input = await websocket.receive_text()
+            
+            # Update last activity timestamp for REAL user messages only
+            # (not control messages or vision updates)
+            if not user_input.startswith("[") and not user_input.startswith("/"):
+                last_user_activity = time.time()
             
             # Log control messages
             if user_input in ["[SPEECH_START]", "[SPEECH_END]"] or user_input.startswith("/mode"):
@@ -226,6 +326,9 @@ async def websocket_chat(websocket: WebSocket):
 
             # Regular chat message
             memory.add("user", user_input)
+            
+            # Update activity timestamp for regular chat
+            last_user_activity = time.time()
             
             # Show conversation history stats
             summary = memory.get_summary()
