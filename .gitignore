@@ -67,6 +67,10 @@ voice/output.wav
 voice/rvc/weights/*.pth
 voice/rvc/index/*.index
 
+# Test directory (often contains large model files)
+test/
+tests/large_files/
+
 # Environment variables
 .env
 .env.local
