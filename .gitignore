@@ -94,3 +94,161 @@ test_*.wav
 test_*.mp3
 temp_*
 
+# Vision system
+vision/__pycache__/
+vision/*.pyc
+vision/test_output/
+vision/screenshots/
+vision/captured_*.png
+vision/captured_*.jpg
+
+# Backend
+backend/__pycache__/
+backend/*.pyc
+backend/alisa_memory.db
+backend/*.db-journal
+backend/*.db-shm
+backend/*.db-wal
+
+# Overlay
+overlay/__pycache__/
+overlay/*.pyc
+
+# Voice
+voice/__pycache__/
+voice/*.pyc
+
+# Memory databases (local data)
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+alisa_memory.db
+memory_*.db
+
+# Performance test results
+vision/perf_results_*.txt
+vision/benchmark_*.json
+vision/test_capture_*.png
+
+# Cache directories
+.cache/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*~
+.#*
+\#*#
+
+# Local configuration overrides
+*_local.py
+local_config.py
+config_local.py
+
+# Screen captures (privacy)
+screenshot_*.png
+screen_*.jpg
+capture_*.png
+
+# OCR cache
+.tesseract_cache/
+ocr_cache/
+
+# Model checkpoints (if training)
+*.ckpt
+*.pt
+*.pth.tar
+checkpoints/
+
+# Large media files
+*.avi
+*.mp4
+*.mkv
+*.mov
+
+# API keys and secrets
+.secrets/
+secrets.json
+api_keys.json
+credentials.json
+
+# Development
+.devcontainer/
+.vscode/settings.json
+.idea/
+*.code-workspace
+
+# Build artifacts
+dist/
+build/
+*.spec
+
+# Documentation builds
+docs/_build/
+docs/.doctrees/
+site/
+
+# Node modules (if any frontend)
+node_modules/
+package-lock.json
+
+# Python virtual environments
+venv/
+env/
+ENV/
+.venv/
+.env/
+virtualenv/
+pipenv/
+Pipfile.lock
+
+# Conda
+.conda/
+conda-meta/
+
+# Coverage reports
+.coverage
+.coverage.*
+htmlcov/
+*.cover
+.hypothesis/
+.pytest_cache/
+nosetests.xml
+coverage.xml
+*.coveragerc
+
+# Profiling data
+*.prof
+*.lprof
+*.pyprof
+profile_*.txt
+
+# System files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Editor files
+*.sublime-project
+*.sublime-workspace
+.vscode/
+!.vscode/extensions.json
+!.vscode/launch.json
+.idea/
+*.iml
+*.ipr
+*.iws
+
