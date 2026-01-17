@@ -15,6 +15,7 @@ Your cute tsundere AI desktop companion with real-time avatar overlay, voice cha
 - 👁️ **Vision Detection** - Webcam presence tracking, attention detection, emotion estimation
 - 🖥️ **Desktop Understanding** - Phase 10A: Knows what you're doing, offers contextual help
 - 🎮 **Desktop Actions** - Phase 10B: Can perform actions with your permission
+- 🎯 **Task Memory & Habits** - Phase 10C: Learns your patterns, adapts quietly over time
 - 🧠 **Smart AI Backend** - LLM streaming, persistent memory, emotion-aware responses
 - 💾 **Conversation Memory** - SQLite storage with auto-loading and token management
 
@@ -180,6 +181,26 @@ python vision_client.py
 ### Idle Thought System
 - [Idle Thought Guide](docs/IDLE_THOUGHT_GUIDE.md) - Complete guide with visuals, implementation, testing & examples
 
+### Phase 10 Evolution (Desktop Integration)
+- **Phase 10A: Desktop Understanding** - Alisa knows what you're doing
+  - [Implementation](docs/PHASE_10A_IMPLEMENTATION.md) - Full technical guide
+  - [Quick Reference](docs/PHASE_10A_QUICK_REF.md) - API and usage
+  - [Getting Started](docs/PHASE_10A_GETTING_STARTED.md) - User guide
+  - [Visual Guide](docs/PHASE_10A_VISUAL_GUIDE.md) - Diagrams
+
+- **Phase 10B: Desktop Actions** - Alisa can help with tasks
+  - [Implementation](docs/PHASE_10B_IMPLEMENTATION.md) - Complete system guide
+  - [Quick Reference](docs/PHASE_10B_QUICK_REF.md) - Commands and API
+  - [Getting Started](docs/PHASE_10B_GETTING_STARTED.md) - Setup and usage
+  - [Visual Guide](docs/PHASE_10B_VISUAL_GUIDE.md) - Architecture diagrams
+
+- **Phase 10C: Task Memory & Habits** - Alisa learns and adapts
+  - [Summary](PHASE_10C_SUMMARY.md) - Overview
+  - [Implementation](docs/PHASE_10C_IMPLEMENTATION.md) - Learning system guide
+  - [Quick Reference](docs/PHASE_10C_QUICK_REF.md) - API reference
+  - [Getting Started](docs/PHASE_10C_GETTING_STARTED.md) - User guide
+  - [Visual Guide](docs/PHASE_10C_VISUAL_GUIDE.md) - Architecture and flows
+
 ### Module Documentation
 - [Backend README](backend/README.md) - API & memory system
 - [Overlay README](overlay/README.md) - Avatar animations
@@ -269,6 +290,10 @@ Replace images in `overlay/assets/`:
 - [x] Emotion detection
 - [x] Conversation modes
 - [x] Memory system
+- [x] Phase 9B: Idle thought companion system
+- [x] Phase 10A: Desktop understanding
+- [x] Phase 10B: Desktop actions with permissions
+- [x] Phase 10C: Task memory and habit learning
 - [ ] Emotion-based avatar expressions
 - [ ] System tray integration
 - [ ] Settings UI panel

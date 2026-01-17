@@ -149,13 +149,43 @@ If nothing meaningful is happening, say nothing.
 Presence matters more than commentary.
 """
 
-def build_prompt(mode_prompt, memories, vision_context=""):
+def build_prompt(mode_prompt, memories, vision_context="", task_insights=None):
+    """
+    Build system prompt with all context
+    
+    Args:
+        mode_prompt: Current mode prompt
+        memories: Past conversation context
+        vision_context: Vision/desktop context
+        task_insights: Phase 10C learned habits (optional)
+    """
     memory_text = "\n".join(memories[-5:])  # limit memory to avoid overload
 
     vision_text = (
         f"\n\nPassive visual context (do not mention explicitly):\n{vision_context}"
         if vision_context else ""
     )
+    
+    # Phase 10C: Add learned habit insights subtly
+    habit_text = ""
+    if task_insights:
+        suggestions = task_insights
+        
+        # Build subtle context from learned patterns
+        hints = []
+        
+        if suggestions.get("be_quiet"):
+            hints.append("User typically prefers focus at this time.")
+        
+        if suggestions.get("expect_coding"):
+            hints.append("User often codes around this time.")
+        
+        if suggestions.get("likely_next_task"):
+            next_task = suggestions["likely_next_task"]["task"]
+            hints.append(f"User often transitions to: {next_task}")
+        
+        if hints:
+            habit_text = f"\n\nLearned patterns (subtle awareness, don't mention):\n" + "\n".join(f"- {hint}" for hint in hints)
 
     return f"""
 {SYSTEM_PROMPT}
@@ -164,5 +194,5 @@ Current personality mode:
 {mode_prompt}
 
 Important past context:
-{memory_text}{vision_text}
+{memory_text}{vision_text}{habit_text}
 """

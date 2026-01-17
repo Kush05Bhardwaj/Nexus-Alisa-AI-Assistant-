@@ -7,6 +7,7 @@ from .emotion import extract_emotion
 from .prompt import build_prompt
 from .idle_companion import companion_system  # Phase 9B: Companion mode
 from .desktop_actions import DesktopActionsSystem  # Phase 10B: Desktop actions
+from .task_memory import task_memory  # Phase 10C: Task memory & habits
 from typing import List
 import asyncio
 import time
@@ -19,6 +20,9 @@ memory = MemoryBuffer()
 
 # Phase 10B: Desktop actions system
 actions_system = DesktopActionsSystem()
+
+# Phase 10C: Task memory system (learns habits)
+# Initialized globally, observes automatically
 
 # Store all connected WebSocket clients
 connected_clients: List[WebSocket] = []
@@ -149,11 +153,20 @@ async def idle_thought_loop():
     global last_user_activity
     
     print("🧠 Phase 9B - Companion System initialized")
+    print("🎯 Phase 10C - Task Memory & Habits initialized")
     print("   Alisa will speak spontaneously when it feels natural")
     print("   Speech is RARE - companion, not chatbot")
+    print("   Alisa learns your work patterns and adapts quietly")
     
     while True:
         await asyncio.sleep(30)  # Check every 30 seconds
+        
+        # Phase 10C: Observe silence period
+        silence_duration = (time.time() - last_user_activity) / 60  # minutes
+        task_memory.observe_silence(silence_duration)
+        
+        # Phase 10C: Check if now is a good time based on learned patterns
+        should_interrupt, reason_10c = task_memory.should_interrupt_now()
         
         # Phase 9B: Use companion system to decide if should speak
         should_speak, reason = companion_system.should_speak_spontaneously(
@@ -162,10 +175,16 @@ async def idle_thought_loop():
             is_idle_thought_active=idle_thought_active
         )
         
+        # Phase 10C: Override if learned patterns say not to interrupt
+        if should_speak and not should_interrupt:
+            print(f"🔇 Phase 10C override: {reason_10c} (would have spoken: {reason})")
+            should_speak = False
+        
         if should_speak:
             # Get companion stats for logging
             stats = companion_system.get_stats()
             print(f"🎯 Phase 9B trigger: {reason}")
+            print(f"✅ Phase 10C permits interrupt")
             print(f"   Stats: silence={stats['silence_duration']:.0f}s, "
                   f"companion_mode={stats['companion_mode_active']}, "
                   f"conversations={stats['conversation_count']}")
@@ -370,6 +389,14 @@ async def websocket_chat(websocket: WebSocket):
                     offer_message = parts[4].strip()
                     window = parts[5].strip()
                     text = parts[6].strip() if len(parts) > 6 else ""
+                    
+                    # Phase 10C: Observe activity and learn patterns
+                    task_memory.observe_activity(task, {
+                        "app": app_type,
+                        "file_type": file_type,
+                        "has_error": has_error,
+                        "window": window
+                    })
                     
                     # Store desktop context
                     desktop_context = f"Desktop: {task}"
@@ -714,12 +741,18 @@ async def websocket_chat(websocket: WebSocket):
             # Phase 9B: Update companion system on user activity
             companion_system.update_user_activity()
             
+            # Phase 10C: Observe user interaction
+            task_memory.observe_interaction("chat")
+            
+            # Phase 10C: Get adaptive suggestions based on learned patterns
+            adaptive_suggestions = task_memory.get_adaptive_suggestions()
+            
             # Show conversation history stats
             summary = memory.get_summary()
             print(f"💬 Conversation: {summary['turns']} turns, ~{summary['estimated_tokens']} tokens")
 
             memories = fetch_recent_memories()
-            system_prompt = build_prompt(get_mode_prompt(), memories)
+            system_prompt = build_prompt(get_mode_prompt(), memories, task_insights=adaptive_suggestions)
 
             messages = [
                 {"role": "system", "content": system_prompt},
@@ -787,6 +820,14 @@ async def websocket_chat(websocket: WebSocket):
     finally:
         # Cancel keepalive task
         keepalive_task.cancel()
+        
+        # Phase 10C: Save learned patterns on disconnect
+        print("💾 Phase 10C: Saving learned patterns...")
+        task_memory.end_session()
+        insights = task_memory.get_habit_insights()
+        print(f"   📊 Session stats: {insights['session_interactions']} interactions")
+        print(f"   🎯 Total tasks observed: {insights['total_tasks_observed']}")
+        
         if websocket in connected_clients:
             connected_clients.remove(websocket)
         print(f"❌ Client disconnected. Total clients: {len(connected_clients)}")
