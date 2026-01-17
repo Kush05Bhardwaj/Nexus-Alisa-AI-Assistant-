@@ -1,6 +1,18 @@
 # 📚 Alisa D### Idle Thought System
 - **`IDLE_THOUGHT_GUIDE.md`** - Complete guide with visuals, implementation details, testing, and examples
-- **`IDLE_THOUGHT_ENHANCED.md`** - ⭐ Enhanced v2.0 with context-aware triggers (vision, time, mood, mode, emotion)umentation
+- **`IDLE_THOUGHT_ENHANCED.md`** - ⭐ Enhanced v2.0 with context-aware triggers (vision, time, mood, mode, emotion)
+
+### Phase 10A: Desktop Understanding
+- **`PHASE_10A_IMPLEMENTATION.md`** - Complete implementation guide with examples
+- **`PHASE_10A_QUICK_REF.md`** - Quick reference for desktop understanding
+- **`PHASE_10A_GETTING_STARTED.md`** - Step-by-step setup guide
+- **`PHASE_10A_VISUAL_GUIDE.md`** - Visual diagrams and architecture
+
+### Phase 10B: Desktop Actions
+- **`PHASE_10B_IMPLEMENTATION.md`** - Complete implementation guide with examples
+- **`PHASE_10B_QUICK_REF.md`** - Quick reference for desktop actions
+- **`PHASE_10B_GETTING_STARTED.md`** - Step-by-step setup guide
+- **`PHASE_10B_VISUAL_GUIDE.md`** - Visual diagrams and architectureumentation
 
 This folder contains all the documentation for the Alisa AI Assistant project.
 
@@ -30,6 +42,18 @@ This folder contains all the documentation for the Alisa AI Assistant project.
    - Mood memory integration
    - Current mode awareness
    - Emotional continuity tracking
+
+### Phase 10A: Desktop Understanding
+1. Read `PHASE_10A_IMPLEMENTATION.md` - Full guide
+2. Check `PHASE_10A_QUICK_REF.md` - Command reference
+3. Follow `PHASE_10A_GETTING_STARTED.md` - Setup steps
+4. Review `PHASE_10A_VISUAL_GUIDE.md` - Architecture diagrams
+
+### Phase 10B: Desktop Actions
+1. Read `PHASE_10B_IMPLEMENTATION.md` - Full guide
+2. Check `PHASE_10B_QUICK_REF.md` - Command reference
+3. Follow `PHASE_10B_GETTING_STARTED.md` - Setup steps
+4. Review `PHASE_10B_VISUAL_GUIDE.md` - Architecture diagrams
 
 ## 📂 Related Folders
 - **`../scripts/`** - Startup scripts and utilities

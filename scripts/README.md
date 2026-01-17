@@ -17,6 +17,8 @@ This folder contains all startup scripts and utilities for the Alisa AI Assistan
 ### Vision Features
 - **`start_vision.ps1`** - Start webcam face detection
 - **`start_vision_screen.ps1`** - Start screen capture analysis
+- **`start_phase10a.ps1`** - Start Phase 10A (Desktop Understanding)
+- **`start_phase10b.ps1`** - Start Phase 10B (Desktop Actions)
 
 ### Voice Only
 - **`start_voice.ps1`** - Start voice-only mode (no text)

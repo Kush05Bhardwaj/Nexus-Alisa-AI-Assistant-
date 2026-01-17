@@ -13,6 +13,8 @@ Your cute tsundere AI desktop companion with real-time avatar overlay, voice cha
 - 🎭 **Animated Avatar** - Transparent overlay with 6 emotions and smooth animations
 - 🗣️ **Voice System** - Speech-to-text, text-to-speech, optional RVC voice conversion
 - 👁️ **Vision Detection** - Webcam presence tracking, attention detection, emotion estimation
+- 🖥️ **Desktop Understanding** - Phase 10A: Knows what you're doing, offers contextual help
+- 🎮 **Desktop Actions** - Phase 10B: Can perform actions with your permission
 - 🧠 **Smart AI Backend** - LLM streaming, persistent memory, emotion-aware responses
 - 💾 **Conversation Memory** - SQLite storage with auto-loading and token management
 

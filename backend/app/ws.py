@@ -6,13 +6,19 @@ from .modes import set_mode, get_mode_prompt, current_mode
 from .emotion import extract_emotion
 from .prompt import build_prompt
 from .idle_companion import companion_system  # Phase 9B: Companion mode
+from .desktop_actions import DesktopActionsSystem  # Phase 10B: Desktop actions
 from typing import List
 import asyncio
 import time
 import random
+import json
+import re
 from datetime import datetime
 
 memory = MemoryBuffer()
+
+# Phase 10B: Desktop actions system
+actions_system = DesktopActionsSystem()
 
 # Store all connected WebSocket clients
 connected_clients: List[WebSocket] = []
@@ -349,7 +355,84 @@ async def websocket_chat(websocket: WebSocket):
                 
                 continue
 
-            # Handle vision system screen context
+            # Phase 10A: Handle desktop understanding messages
+            if user_input.startswith("[VISION_DESKTOP]"):
+                content = user_input.replace("[VISION_DESKTOP]", "")
+                
+                # Parse: task|app|file_type|has_error|offer|window|text
+                parts = content.split("|", 6)
+                
+                if len(parts) >= 7:
+                    task = parts[0].strip()
+                    app_type = parts[1].strip()
+                    file_type = parts[2].strip()
+                    has_error = parts[3].strip() == "True"
+                    offer_message = parts[4].strip()
+                    window = parts[5].strip()
+                    text = parts[6].strip() if len(parts) > 6 else ""
+                    
+                    # Store desktop context
+                    desktop_context = f"Desktop: {task}"
+                    if app_type != "unknown":
+                        desktop_context += f" in {app_type}"
+                    if file_type != "unknown":
+                        desktop_context += f" ({file_type} file)"
+                    
+                    memory.add("system", desktop_context)
+                    
+                    # Log
+                    print(f"🖥️  Desktop understanding: {task}")
+                    
+                    # If error detected and should offer help
+                    if has_error and offer_message:
+                        print(f"💡 Alisa can offer: {offer_message}")
+                        
+                        # Generate helpful offer (only if not offered recently)
+                        # This is automatic but rare (desktop_understanding handles timing)
+                        memories = fetch_recent_memories()
+                        
+                        offer_prompt = (
+                            f"Context: {desktop_context}. "
+                            f"An error was detected on the user's screen. "
+                            f"Offer: {offer_message} "
+                            f"Be natural and brief. Don't be pushy. "
+                            f"This is an offer, not a forced conversation."
+                        )
+                        
+                        system_prompt = build_prompt(
+                            get_mode_prompt(),
+                            memories,
+                            vision_context=offer_prompt
+                        )
+                        
+                        messages = [
+                            {"role": "system", "content": system_prompt},
+                            {"role": "system", "content": offer_prompt}
+                        ]
+                        
+                        full_response = ""
+                        try:
+                            async for token in stream_llm_response(messages):
+                                full_response += token
+                                await broadcast_message(token, exclude=None)
+                            
+                            emotion, clean_text = extract_emotion(full_response)
+                            
+                            last_emotion_expressed = emotion
+                            memory.add("assistant", clean_text)
+                            save_memory(emotion, clean_text)
+                            
+                            await broadcast_message(f"[EMOTION]{emotion}", exclude=None)
+                            await broadcast_message("[END]", exclude=None)
+                            
+                            print(f"✅ Phase 10A offer sent: {clean_text[:50]}...")
+                            
+                        except Exception as e:
+                            print(f"❌ Error generating Phase 10A offer: {e}")
+                
+                continue
+
+            # Handle vision system screen context (legacy, kept for compatibility)
             if user_input.startswith("[VISION_SCREEN]"):
                 content = user_input.replace("[VISION_SCREEN]", "")
                 
@@ -375,6 +458,252 @@ async def websocket_chat(websocket: WebSocket):
                 await websocket.send_text("[MODE CHANGED]")
                 await websocket.send_text("[END]")
                 continue
+            
+            # Phase 10B: Handle explicit action confirmations
+            if user_input.strip().lower() in ["yes", "yeah", "yep", "sure", "okay", "ok", "do it"]:
+                if actions_system.pending_action:
+                    print(f"✅ Phase 10B: User confirmed action")
+                    success, message = actions_system.execute_pending_action()
+                    
+                    # Send result back to user
+                    response = f"[TEASING] {message}" if success else f"[SERIOUS] {message}"
+                    emotion, clean = extract_emotion(response)
+                    
+                    await websocket.send_text(clean)
+                    await websocket.send_text(f"[EMOTION]{emotion}")
+                    await websocket.send_text("[END]")
+                    
+                    await broadcast_message(clean, exclude=websocket)
+                    await broadcast_message(f"[EMOTION]{emotion}", exclude=websocket)
+                    await broadcast_message("[END]", exclude=websocket)
+                    
+                    continue
+            
+            # Phase 10B: Handle action rejections
+            if user_input.strip().lower() in ["no", "nope", "nah", "cancel", "don't"]:
+                if actions_system.pending_action:
+                    print(f"❌ Phase 10B: User declined action")
+                    actions_system.clear_pending_action()
+                    
+                    response = "[CALM] Alright, no problem."
+                    emotion, clean = extract_emotion(response)
+                    
+                    await websocket.send_text(clean)
+                    await websocket.send_text(f"[EMOTION]{emotion}")
+                    await websocket.send_text("[END]")
+                    
+                    await broadcast_message(clean, exclude=websocket)
+                    await broadcast_message(f"[EMOTION]{emotion}", exclude=websocket)
+                    await broadcast_message("[END]", exclude=websocket)
+                    
+                    continue
+            
+            # Phase 10B: Detect action commands in user input
+            action_detected = False
+            action_type = None
+            action_params = {}
+            
+            user_lower = user_input.lower()
+            
+            # Pattern matching for various action types
+            # Open app patterns
+            if re.search(r'\b(open|launch|start)\s+(\w+)', user_lower):
+                match = re.search(r'\b(open|launch|start)\s+(\w+)', user_lower)
+                app_name = match.group(2)
+                action_detected = True
+                action_type = "open_app"
+                action_params = {"app_name": app_name}
+                print(f"🎯 Phase 10B: Detected open app command - {app_name}")
+            
+            # Close app patterns
+            elif re.search(r'\b(close|quit|exit)\s+(\w+)', user_lower):
+                match = re.search(r'\b(close|quit|exit)\s+(\w+)', user_lower)
+                app_name = match.group(2)
+                action_detected = True
+                action_type = "close_app"
+                action_params = {"app_name": app_name}
+                print(f"🎯 Phase 10B: Detected close app command - {app_name}")
+            
+            # Browser navigation
+            elif "go to" in user_lower or "navigate to" in user_lower:
+                # Extract URL
+                match = re.search(r'(?:go to|navigate to)\s+([a-z0-9.-]+\.[a-z]{2,})', user_lower)
+                if match:
+                    url = match.group(1)
+                    if not url.startswith("http"):
+                        url = "https://" + url
+                    action_detected = True
+                    action_type = "browser_navigate"
+                    action_params = {"url": url}
+                    print(f"🎯 Phase 10B: Detected browser navigation - {url}")
+            
+            # New tab
+            elif "new tab" in user_lower or "open tab" in user_lower:
+                action_detected = True
+                action_type = "browser_new_tab"
+                action_params = {}
+                print(f"🎯 Phase 10B: Detected new tab command")
+            
+            # Close tab
+            elif "close tab" in user_lower:
+                action_detected = True
+                action_type = "browser_close_tab"
+                action_params = {}
+                print(f"🎯 Phase 10B: Detected close tab command")
+            
+            # Scroll
+            elif re.search(r'scroll\s+(up|down)', user_lower):
+                match = re.search(r'scroll\s+(up|down)', user_lower)
+                direction = match.group(1)
+                action_detected = True
+                action_type = "scroll"
+                action_params = {"amount": 3, "direction": direction}
+                print(f"🎯 Phase 10B: Detected scroll command - {direction}")
+            
+            # Type text
+            elif user_lower.startswith("type "):
+                text = user_input[5:].strip()
+                action_detected = True
+                action_type = "type_text"
+                action_params = {"text": text}
+                print(f"🎯 Phase 10B: Detected type command - {text[:30]}")
+            
+            # Read file
+            elif "read file" in user_lower or "show me" in user_lower and "file" in user_lower:
+                # Try to extract filename/path
+                match = re.search(r'(?:read file|show me)\s+(.+)', user_input)
+                if match:
+                    filepath = match.group(1).strip('"\'')
+                    action_detected = True
+                    action_type = "read_file"
+                    action_params = {"filepath": filepath}
+                    print(f"🎯 Phase 10B: Detected read file command - {filepath}")
+            
+            # Take note / write note
+            elif "take note" in user_lower or "write note" in user_lower or "save note" in user_lower:
+                # Extract note content (everything after the command)
+                match = re.search(r'(?:take note|write note|save note):?\s+(.+)', user_input, re.IGNORECASE)
+                if match:
+                    content = match.group(1).strip()
+                    action_detected = True
+                    action_type = "write_note"
+                    action_params = {"content": content}
+                    print(f"🎯 Phase 10B: Detected write note command - {content[:30]}")
+            
+            # If action detected, ask for confirmation (unless it's a direct command)
+            if action_detected:
+                # Check if it's a direct command (explicit verb at start)
+                is_direct_command = user_lower.startswith(("open ", "close ", "launch ", "start ", 
+                                                           "type ", "scroll ", "new tab", "close tab"))
+                
+                if is_direct_command:
+                    # Execute directly for explicit commands
+                    print(f"⚡ Phase 10B: Direct command, executing immediately")
+                    
+                    # Execute action
+                    success = False
+                    message = ""
+                    
+                    if action_type == "open_app":
+                        success, message = actions_system.open_app(**action_params)
+                    elif action_type == "close_app":
+                        success, message = actions_system.close_app(**action_params)
+                    elif action_type == "browser_navigate":
+                        success, message = actions_system.browser_navigate(**action_params)
+                    elif action_type == "browser_new_tab":
+                        success, message = actions_system.browser_new_tab()
+                    elif action_type == "browser_close_tab":
+                        success, message = actions_system.browser_close_tab()
+                    elif action_type == "scroll":
+                        success, message = actions_system.scroll(**action_params)
+                    elif action_type == "type_text":
+                        success, message = actions_system.type_text(**action_params)
+                    elif action_type == "read_file":
+                        success, message = actions_system.read_file(**action_params)
+                    elif action_type == "write_note":
+                        success, message = actions_system.write_note(**action_params)
+                    
+                    # Send result
+                    if success:
+                        response = f"[TEASING] {message}"
+                    else:
+                        response = f"[SERIOUS] {message}"
+                    
+                    emotion, clean = extract_emotion(response)
+                    
+                    await websocket.send_text(clean)
+                    await websocket.send_text(f"[EMOTION]{emotion}")
+                    await websocket.send_text("[END]")
+                    
+                    await broadcast_message(clean, exclude=websocket)
+                    await broadcast_message(f"[EMOTION]{emotion}", exclude=websocket)
+                    await broadcast_message("[END]", exclude=websocket)
+                    
+                    continue
+                else:
+                    # Ask for confirmation via LLM
+                    print(f"❓ Phase 10B: Asking for confirmation via LLM")
+                    
+                    # Store pending action
+                    actions_system.set_pending_action(action_type, action_params)
+                    
+                    # Build confirmation prompt
+                    memories = fetch_recent_memories()
+                    
+                    action_description = {
+                        "open_app": f"open {action_params.get('app_name')}",
+                        "close_app": f"close {action_params.get('app_name')}",
+                        "browser_navigate": f"navigate to {action_params.get('url')}",
+                        "browser_new_tab": "open a new browser tab",
+                        "browser_close_tab": "close the current tab",
+                        "scroll": f"scroll {action_params.get('direction')}",
+                        "type_text": f"type: {action_params.get('text', '')[:30]}",
+                        "read_file": f"read file: {action_params.get('filepath')}",
+                        "write_note": f"save a note"
+                    }.get(action_type, "do that")
+                    
+                    confirmation_prompt = (
+                        f"The user wants you to {action_description}. "
+                        f"Ask for their confirmation in a natural, casual way. "
+                        f"Keep it brief and conversational. Don't be formal."
+                    )
+                    
+                    system_prompt = build_prompt(
+                        get_mode_prompt(),
+                        memories,
+                        vision_context=confirmation_prompt
+                    )
+                    
+                    messages = [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_input}
+                    ]
+                    
+                    full_response = ""
+                    try:
+                        async for token in stream_llm_response(messages):
+                            full_response += token
+                            await websocket.send_text(token)
+                            await broadcast_message(token, exclude=websocket)
+                        
+                        emotion, clean_text = extract_emotion(full_response)
+                        
+                        memory.add("user", user_input)
+                        memory.add("assistant", clean_text)
+                        save_memory(emotion, clean_text)
+                        
+                        await websocket.send_text(f"[EMOTION]{emotion}")
+                        await websocket.send_text("[END]")
+                        
+                        await broadcast_message(f"[EMOTION]{emotion}", exclude=websocket)
+                        await broadcast_message("[END]", exclude=websocket)
+                        
+                        print(f"✅ Phase 10B: Confirmation question sent")
+                        
+                    except Exception as e:
+                        print(f"❌ Error generating confirmation: {e}")
+                    
+                    continue
 
             # Regular chat message
             memory.add("user", user_input)

@@ -1,7 +1,7 @@
 """
-Enhanced Vision Client with Screen Context Awareness
-Monitors webcam (face/attention) + screen content
-Sends periodic screen updates to backend for context-aware assistance
+Phase 10A: Enhanced Vision Client with Desktop Understanding
+Monitors webcam (face/attention) + understands screen context
+Offers contextual help based on what user is doing
 """
 import asyncio
 import cv2
@@ -10,17 +10,17 @@ import time
 from face_emotion import detect_face_and_emotion
 from screen_capture import capture_screen
 from screen_analyze import analyze_screen
+from desktop_understanding import desktop_understanding
 
 # WebSocket connection URL
 WS_URL = "ws://127.0.0.1:8000/ws/chat"
 
 # Throttle timing (in seconds)
-SCREEN_CAPTURE_INTERVAL = 5  # Capture screen every 5-10 seconds
-MIN_SCREEN_CAPTURE_INTERVAL = 5
-MAX_SCREEN_CAPTURE_INTERVAL = 10
+SCREEN_CAPTURE_INTERVAL = 10  # Analyze screen every 10 seconds (not too often)
+MIN_SCREEN_CAPTURE_INTERVAL = 10
 
 async def vision_with_screen_loop():
-    """Main vision loop with screen capture support."""
+    """Main vision loop with Phase 10A desktop understanding."""
     
     # Initialize webcam
     cap = cv2.VideoCapture(0)
@@ -35,8 +35,9 @@ async def vision_with_screen_loop():
     last_emotion = "neutral"
     last_screen_capture = 0
     
-    print("✅ Vision system with screen capture started")
-    print(f"📸 Screen will be analyzed every {MIN_SCREEN_CAPTURE_INTERVAL}-{MAX_SCREEN_CAPTURE_INTERVAL} seconds")
+    print("✅ Phase 10A - Desktop Understanding System started")
+    print(f"📸 Screen will be analyzed every {SCREEN_CAPTURE_INTERVAL} seconds")
+    print("🧠 Alisa will understand what you're doing and offer help when appropriate")
     
     # Auto-reconnect loop
     while True:
@@ -89,15 +90,37 @@ async def vision_with_screen_loop():
                         if screen is not None:
                             info = analyze_screen(screen)
                             
-                            # Send screen context to backend
                             window_title = info.get("window", "")
                             screen_text = info.get("text", "").strip()
                             
-                            # Only send if there's meaningful content
+                            # Phase 10A: Desktop Understanding
                             if window_title or screen_text:
-                                message = f"[VISION_SCREEN]{window_title} | {screen_text}"
-                                await ws.send(message)
-                                print(f"📸 Screen context: {window_title[:50]}...")
+                                analysis = desktop_understanding.analyze_screen_context(
+                                    window_title=window_title,
+                                    screen_text=screen_text
+                                )
+                                
+                                # Log desktop understanding
+                                print(f"🖥️  Context: {analysis['context_summary']}")
+                                if analysis["has_error"]:
+                                    print(f"⚠️  Error detected: {analysis['error_text'][:60]}...")
+                                if analysis["should_offer_help"]:
+                                    print(f"💡 Alisa can offer: {analysis['offer_message']}")
+                                
+                                # Send to backend with understanding context
+                                # Format: [VISION_DESKTOP]task|app|file_type|has_error|offer|window|text
+                                desktop_msg = (
+                                    f"[VISION_DESKTOP]"
+                                    f"{analysis['task']}|"
+                                    f"{analysis['app_type']}|"
+                                    f"{analysis['file_type']}|"
+                                    f"{analysis['has_error']}|"
+                                    f"{analysis['offer_message']}|"
+                                    f"{window_title}|"
+                                    f"{screen_text[:200]}"
+                                )
+                                await ws.send(desktop_msg)
+                                
                                 last_screen_capture = current_time
                     
                     # Small delay to reduce CPU usage
@@ -117,12 +140,14 @@ async def vision_with_screen_loop():
 
 if __name__ == "__main__":
     print("=" * 60)
-    print("👁️ Enhanced Vision System - Face + Screen Context")
+    print("👁️ Phase 10A - Desktop Understanding System")
     print("=" * 60)
-    print("Monitoring:")
-    print("  - User presence (face detection)")
-    print("  - Attention state (focused/away)")
-    print("  - Screen content (window + text)")
+    print("Features:")
+    print("  ✅ Face detection & attention tracking")
+    print("  ✅ Screen content analysis")
+    print("  ✅ Desktop understanding (what you're doing)")
+    print("  ✅ Error detection")
+    print("  ✅ Contextual help offers")
     print("=" * 60)
     print()
     
