@@ -2,6 +2,7 @@ import asyncio
 import websockets
 import os
 import re
+import tempfile
 import threading
 from concurrent.futures import ThreadPoolExecutor
 import edge_tts
@@ -45,21 +46,24 @@ except ImportError:
     SPEECH_RATE = "+10%"
     PITCH_SHIFT = "+5Hz"
 
-OUTPUT_FILE = "alisa_voice.mp3"
-
 async def speak_with_timing(text, ws):
     """
     Custom TTS function with precise timing control.
     Sends [SPEECH_START] only when audio playback actually begins.
     """
+    output_file = None
     try:
-        # Step 1: Generate TTS audio (this takes time)
+        # Step 1: Create unique temporary file
+        fd, output_file = tempfile.mkstemp(suffix='.mp3', prefix='alisa_voice_')
+        os.close(fd)  # Close the file descriptor immediately
+        
+        # Step 2: Generate TTS audio (this takes time)
         print(f"🎤 Generating TTS audio...")
         communicate = edge_tts.Communicate(text, VOICE, rate=SPEECH_RATE, pitch=PITCH_SHIFT)
-        await communicate.save(OUTPUT_FILE)
+        await communicate.save(output_file)
         print(f"✅ TTS audio generated")
         
-        # Step 2: Prepare audio playback
+        # Step 3: Prepare audio playback
         if pygame.mixer.get_init():
             pygame.mixer.music.stop()
             pygame.mixer.music.unload()
@@ -67,20 +71,20 @@ async def speak_with_timing(text, ws):
         if not pygame.mixer.get_init():
             pygame.mixer.init()
         
-        pygame.mixer.music.load(OUTPUT_FILE)
+        pygame.mixer.music.load(output_file)
         
-        # Step 3: Start playback FIRST
+        # Step 4: Start playback FIRST
         pygame.mixer.music.play()
         print(f"🎵 Audio playback started")
         
-        # Step 4: NOW send [SPEECH_START] - mouth syncs with actual audio
+        # Step 5: NOW send [SPEECH_START] - mouth syncs with actual audio
         try:
             await ws.send("[SPEECH_START]")
             print("✅ [SPEECH_START] sent (audio is now playing)")
         except Exception as e:
             print(f"⚠️ Failed to send [SPEECH_START]: {e}")
         
-        # Step 5: Wait for playback to finish
+        # Step 6: Wait for playback to finish
         def wait_for_playback():
             while pygame.mixer.music.get_busy():
                 pygame.time.Clock().tick(10)
@@ -91,10 +95,25 @@ async def speak_with_timing(text, ws):
         print(f"🎵 Audio playback finished")
         pygame.mixer.music.unload()
         
+        # Step 7: Clean up the temporary file
+        if output_file and os.path.exists(output_file):
+            try:
+                await asyncio.sleep(0.1)  # Small delay to ensure file is released
+                os.unlink(output_file)
+            except Exception as cleanup_error:
+                print(f"⚠️ Warning: Could not delete temp file: {cleanup_error}")
+        
     except Exception as e:
-        print(f"❌ TTS error: {e}")
+        print(f"⚠️ TTS error: {e}")
         import traceback
         traceback.print_exc()
+        
+        # Try to clean up on error
+        if output_file and os.path.exists(output_file):
+            try:
+                os.unlink(output_file)
+            except:
+                pass
 
 
 def clean_text_for_speech(text: str) -> str:
@@ -105,23 +124,28 @@ def clean_text_for_speech(text: str) -> str:
     text = re.sub(r'<[^>]+>', '', text)
     
     # Official allowed emotions from prompt.py:
-    # happy, calm, teasing, shy, serious, sad, neutral
-    # Plus some common variations the LLM might use
-    emotions = [
-        # Official emotions
-        'happy', 'calm', 'teasing', 'shy', 'serious', 'sad', 'neutral',
-        # Common variations/extras that might appear
-        'blushing', 'excited', 'angry', 'surprised', 'confused', 
-        'playful', 'annoyed', 'worried', 'embarrassed', 'flustered',
-        'confident', 'gentle', 'nervous', 'proud', 'cheerful'
-    ]
+    # happy, calm, teasing, serious, sad, neutral
+    emotions = ['happy', 'calm', 'teasing', 'serious', 'sad', 'neutral']
     
-    # Remove emotion word if it appears at the start of the text
-    # Use word boundary to ensure we match complete words only
+    # Only remove emotion word if:
+    # 1. It's at the very start
+    # 2. It's followed by actual content (not just the emotion word alone)
     for emotion in emotions:
-        # Match emotion at start as a complete word with whitespace after
-        pattern = r'^\s*\b' + re.escape(emotion) + r'\b\s+'
-        text = re.sub(pattern, '', text, flags=re.IGNORECASE)
+        # Check if text starts with emotion word
+        if text.lower().strip() == emotion.lower():
+            # If the ENTIRE text is just the emotion word, keep it
+            # (This is a broken LLM response but at least it's visible)
+            continue
+        
+        # Match emotion at start as a complete word with whitespace/newline after
+        pattern = r'^\s*\b' + re.escape(emotion) + r'\b[\s\n]+'
+        match = re.match(pattern, text, flags=re.IGNORECASE)
+        if match:
+            # Only remove if there's content after the emotion word
+            remaining = text[match.end():]
+            if remaining.strip():
+                text = remaining
+                break
     
     # Clean up extra whitespace and newlines
     text = ' '.join(text.split())
@@ -193,9 +217,8 @@ async def text_chat():
 
                 print()  # New line after response
                 
-                # Show emotion if it's not neutral (optional visual feedback)
-                if emotion != "neutral":
-                    print(f"[Emotion: {emotion}]")
+                # Always show emotion for debugging
+                print(f"💭 Emotion: {emotion}")
                 
                 # Clean the text before speaking (remove emotion tags)
                 clean_reply = clean_text_for_speech(full_reply)

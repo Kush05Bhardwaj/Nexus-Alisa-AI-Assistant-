@@ -12,7 +12,8 @@ async def stream_llm_response(messages):
                 "model": "local",
                 "messages": messages,
                 "stream": True,
-                "temperature": 0.8
+                "temperature": 0.7,
+                "repeat_penalty": 1.1
             }
         ) as response:
             async for line in response.aiter_lines():

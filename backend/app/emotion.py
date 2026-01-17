@@ -14,15 +14,26 @@ def extract_emotion(text: str):
         clean_text = text.split(">", 1)[1].strip()
         return emotion, clean_text
     
-    # Case 2: LLM put emotion word at start without tag (fallback)
+    # Case 2: LLM output ONLY an emotion word (broken response)
+    # If the entire response is just an emotion word, treat it as neutral with that text
+    text_stripped = text.strip().lower()
+    if text_stripped in valid_emotions:
+        # LLM broke - just outputted emotion word
+        # Treat as neutral and keep the word in output (it's weird but visible)
+        return "neutral", text.strip()
+    
+    # Case 3: LLM put emotion word at start without tag (fallback)
     for emotion in valid_emotions:
+        # Check if starts with emotion word followed by space or newline
         if text.lower().startswith(emotion + " "):
             clean_text = text[len(emotion):].strip()
-            return emotion, clean_text
-        # Also check with newline
+            # Only extract if there's actual content after the emotion
+            if clean_text:
+                return emotion, clean_text
         if text.lower().startswith(emotion + "\n"):
             clean_text = text[len(emotion):].strip()
-            return emotion, clean_text
+            if clean_text:
+                return emotion, clean_text
     
-    # Case 3: No emotion detected, add neutral
+    # Case 4: No emotion detected, add neutral
     return "neutral", text.strip()

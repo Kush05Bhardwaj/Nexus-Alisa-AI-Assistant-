@@ -147,6 +147,14 @@ async def trigger_idle_response():
             await broadcast_message(token, exclude=None)
         
         emotion, clean_text = extract_emotion(full_response)
+        
+        # GUARD: Detect broken LLM responses in idle thoughts
+        valid_emotions = ["teasing", "calm", "serious", "happy", "sad", "neutral", "shy"]
+        if clean_text.strip().lower() in valid_emotions or len(clean_text.strip()) < 3:
+            print(f"⚠️ Idle thought broken: '{clean_text}' - skipping")
+            idle_thought_active = False
+            return  # Don't send broken idle thoughts
+        
         last_emotion_expressed = emotion  # Track emotion for continuity
         
         memory.add("assistant", clean_text)
@@ -379,6 +387,22 @@ async def websocket_chat(websocket: WebSocket):
                             await broadcast_message(token, exclude=None)
                         
                         emotion, clean_text = extract_emotion(full_response)
+                        
+                        # GUARD: Detect broken LLM responses
+                        valid_emotions = ["teasing", "calm", "serious", "happy", "sad", "neutral", "shy"]
+                        if clean_text.strip().lower() in valid_emotions or len(clean_text.strip()) < 3:
+                            print(f"⚠️ Vision reaction broken: '{clean_text}' - using fallback")
+                            fallbacks = {
+                                "teasing": "Hmph.",
+                                "shy": "...",
+                                "calm": "Mhm.",
+                                "serious": "...",
+                                "happy": "Heh.",
+                                "sad": "...",
+                                "neutral": "..."
+                            }
+                            clean_text = fallbacks.get(emotion, "...")
+                        
                         last_emotion_expressed = emotion  # Track for idle continuity
                         memory.add("assistant", clean_text)
                         save_memory(emotion, clean_text)
@@ -456,6 +480,25 @@ async def websocket_chat(websocket: WebSocket):
                     await broadcast_message(token, exclude=websocket)
 
                 emotion, clean_text = extract_emotion(full_response)
+                
+                # GUARD: Detect broken LLM responses (just emotion word, no content)
+                # Valid emotions that might be the entire response
+                valid_emotions = ["teasing", "calm", "serious", "happy", "sad", "neutral", "shy"]
+                if clean_text.strip().lower() in valid_emotions or len(clean_text.strip()) < 3:
+                    # LLM output was broken (just emotion word or too short)
+                    print(f"⚠️ Detected broken response: '{clean_text}' - using fallback")
+                    # Use a contextual fallback based on emotion
+                    fallbacks = {
+                        "teasing": "...",
+                        "shy": "Um...",
+                        "calm": "Mhm.",
+                        "serious": "I see.",
+                        "happy": "Heh.",
+                        "sad": "...",
+                        "neutral": "..."
+                    }
+                    clean_text = fallbacks.get(emotion, "...")
+                
                 last_emotion_expressed = emotion  # Track for idle continuity
 
                 memory.add("assistant", clean_text)
