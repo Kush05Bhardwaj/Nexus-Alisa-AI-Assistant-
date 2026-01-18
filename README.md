@@ -48,8 +48,6 @@ Alisa is a **fully local AI companion** that combines an animated avatar, natura
 - **Idle Companion** - Spontaneous thoughts during breaks ([guide](docs/IDLE_THOUGHT_GUIDE.md))
 - **Conversation Modes** - Teasing, calm, serious personalities
 
-> � **[Complete Architecture Documentation](docs/SYSTEM_ARCHITECTURE.md)** | **[File-by-File Guide](docs/CODEBASE_STRUCTURE.md)**
-
 ---
 
 ## 🚀 Quick Start
@@ -97,8 +95,6 @@ cd "Alisa-AI Assistant"
 .\scripts\start_overlay.ps1    # Add avatar
 .\scripts\start_vision.ps1     # Add presence detection
 ```
-
-**📖 [Complete Setup Guide](scripts/README.md)** | **[Troubleshooting](scripts/README.md#-troubleshooting)**
 
 ### Manual Setup (No Scripts)
 
