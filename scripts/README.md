@@ -2044,4 +2044,4 @@ Found a bug? Want to improve a script?
 
 **Documentation:** [docs/README.md](../docs/README.md)  
 **Issues:** Check backend/overlay/voice/vision logs  
-**Community:** [GitHub Issues](https://github.com/Kush05Bhardwaj/Nexus-Alisa-AI-Assistant-)
+**Community:** [GitHub Issues](https://github.com/Kush05Bhardwaj/Nexus-Alisa-AI-Assistant)

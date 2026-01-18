@@ -62,7 +62,7 @@ Alisa is a **fully local AI companion** that combines an animated avatar, natura
 
 **1. Clone Repository**
 ```powershell
-git clone https://github.com/Kush05Bhardwaj/Nexus-Alisa-AI-Assistant-.git
+git clone https://github.com/Kush05Bhardwaj/Nexus-Alisa-AI-Assistant.git
 cd "Alisa-AI Assistant"
 ```
 
@@ -449,7 +449,7 @@ git push origin feature/AmazingFeature
 - Read module-specific READMEs for troubleshooting
 
 **GitHub Issues:**
-- Report bugs: [GitHub Issues](https://github.com/Kush05Bhardwaj/Nexus-Alisa-AI-Assistant-/issues)
+- Report bugs: [GitHub Issues](https://github.com/Kush05Bhardwaj/Nexus-Alisa-AI-Assistant/issues)
 - Request features: Use "enhancement" label
 - Ask questions: Use "question" label
 
@@ -544,7 +544,7 @@ python .\scripts\view_history.py
 
 **Made with ❤️ by [Kushagra Bhardwaj](https://github.com/Kush05Bhardwaj)**
 
-**Repository:** [Nexus-Alisa-AI-Assistant-](https://github.com/Kush05Bhardwaj/Nexus-Alisa-AI-Assistant-)
+**Repository:** [Nexus-Alisa-AI-Assistant-](https://github.com/Kush05Bhardwaj/Nexus-Alisa-AI-Assistant)
 
 ---
 
