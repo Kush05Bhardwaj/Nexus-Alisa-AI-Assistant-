@@ -25,6 +25,15 @@ except ImportError:
     VOICE_INPUT_AVAILABLE = False
     print("⚠️ Voice input not available. Install faster-whisper and sounddevice.")
 
+# Voice output - USE HINGLISH-AWARE VERSION FOR BEST RESULTS
+try:
+    from voice_output_hinglish import speak_async as speak_hinglish
+    USE_HINGLISH_TTS = True
+    print("🇮🇳 Hinglish-aware TTS enabled!")
+except ImportError:
+    USE_HINGLISH_TTS = False
+    print("⚠️ Hinglish TTS not available, using basic Edge TTS")
+
 WS_URL = "ws://127.0.0.1:8000/ws/chat"
 
 # Import voice configuration
@@ -56,9 +65,29 @@ EMOTION_EMOJI = {
 async def speak_with_timing(text, ws):
     """
     Generate TTS and play audio with perfect timing for overlay sync.
+    Now with Hinglish support via RVC!
     """
     try:
-        # Generate TTS audio
+        # If Hinglish-aware TTS is available, use it
+        if USE_HINGLISH_TTS:
+            # Notify overlay
+            try:
+                await ws.send("[SPEECH_START]")
+            except Exception as e:
+                print(f"⚠️ Failed to send [SPEECH_START]: {e}")
+            
+            # Use Hinglish-aware TTS with RVC
+            await speak_hinglish(text)
+            
+            # Notify overlay end
+            try:
+                await ws.send("[SPEECH_END]")
+            except Exception as e:
+                print(f"⚠️ Failed to send [SPEECH_END]: {e}")
+            
+            return
+        
+        # Fallback to basic Edge TTS
         communicate = edge_tts.Communicate(text, VOICE, rate=SPEECH_RATE, pitch=PITCH_SHIFT)
         await communicate.save(OUTPUT_FILE)
         

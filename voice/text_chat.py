@@ -12,28 +12,34 @@ import pygame
 speak_func = None
 
 try:
-    # Try Edge TTS first (more reliable without RVC dependencies)
-    from voice_output_edge import speak
-    speak_func = speak
-    print("🎀 Using Edge TTS cute voice!")
+    # Try Hinglish-aware voice first (best for Hinglish support!)
+    from voice_output_hinglish import speak_async as speak_hinglish_async
+    speak_func = "hinglish_async"  # Special marker
+    print("🇮🇳 Using Hinglish-aware voice with auto-detection!")
 except Exception as e:
     try:
-        # Fall back to RVC if Edge TTS fails
-        from voice_output_rvc import speak
+        # Try Edge TTS (more reliable without RVC dependencies)
+        from voice_output_edge import speak
         speak_func = speak
-        print("🎀 Using RVC waifu voice!")
+        print("🎀 Using Edge TTS cute voice!")
     except Exception as e2:
         try:
-            # Last resort: basic TTS
-            from voice_output import speak
+            # Fall back to RVC if Edge TTS fails
+            from voice_output_rvc import speak
             speak_func = speak
-            print("⚠️  Using basic voice output")
+            print("🎀 Using RVC waifu voice!")
         except Exception as e3:
-            # Fallback if no voice module works
-            def speak(text):
-                print(f"[SPEAK] {text}")
-            speak_func = speak
-            print("❌ No voice output available")
+            try:
+                # Last resort: basic TTS
+                from voice_output import speak
+                speak_func = speak
+                print("⚠️  Using basic voice output")
+            except Exception as e4:
+                # Fallback if no voice module works
+                def speak(text):
+                    print(f"[SPEAK] {text}")
+                speak_func = speak
+                print("❌ No voice output available")
 
 WS_URL = "ws://127.0.0.1:8000/ws/chat"
 
@@ -49,8 +55,38 @@ except ImportError:
 async def speak_with_timing(text, ws):
     """
     Custom TTS function with precise timing control.
+    Now with Hinglish auto-detection support!
     Sends [SPEECH_START] only when audio playback actually begins.
     """
+    # If using Hinglish-aware voice, use it directly
+    if speak_func == "hinglish_async":
+        try:
+            from voice_output_hinglish import speak_async as speak_hinglish_async
+            
+            # Send speech start
+            try:
+                await ws.send("[SPEECH_START]")
+                print("✅ [SPEECH_START] sent")
+            except Exception as e:
+                print(f"⚠️ Failed to send [SPEECH_START]: {e}")
+            
+            # Use Hinglish-aware TTS (handles language detection automatically)
+            await speak_hinglish_async(text)
+            
+            # Send speech end  
+            try:
+                await ws.send("[SPEECH_END]")
+                print("✅ [SPEECH_END] sent")
+            except Exception as e:
+                print(f"⚠️ Failed to send [SPEECH_END]: {e}")
+            
+            return
+            
+        except Exception as e:
+            print(f"⚠️ Hinglish TTS error, falling back: {e}")
+            # Fall through to default TTS
+    
+    # Original Edge TTS implementation (fallback)
     output_file = None
     try:
         # Step 1: Create unique temporary file

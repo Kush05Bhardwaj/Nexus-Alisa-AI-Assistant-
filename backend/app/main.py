@@ -1,30 +1,31 @@
 from fastapi import FastAPI, WebSocket
 from .ws import websocket_chat, idle_thought_loop
 from .db import engine, Base
+from pydantic import BaseModel
 import asyncio
+from contextlib import asynccontextmanager
 
 # Create database tables on startup
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Alisa Core Backend")
-
-# Global task for idle thought loop
-idle_task = None
-
-@app.on_event("startup")
-async def startup_event():
-    """Start background tasks when app starts"""
-    global idle_task
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Manage application lifespan events"""
+    # Startup
     idle_task = asyncio.create_task(idle_thought_loop())
     print("🚀 Idle thought engine initialized")
+    
+    yield
+    
+    # Shutdown
+    idle_task.cancel()
+    print("🛑 Idle thought engine stopped")
 
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Clean up background tasks when app stops"""
-    global idle_task
-    if idle_task:
-        idle_task.cancel()
-        print("🛑 Idle thought engine stopped")
+app = FastAPI(title="Alisa Core Backend", lifespan=lifespan)
+
+# Message schema for API
+class MessageSchema(BaseModel):
+    text: str
 
 @app.websocket("/ws/chat")
 async def chat_ws(websocket: WebSocket):
@@ -46,3 +47,13 @@ def clear_history():
     from .memory import memory
     memory.clear()
     return {"status": "History cleared"}
+
+@app.post("/normalize_hinglish/")
+async def normalize_hinglish(payload: MessageSchema):
+    from .llm import llm_server
+    prompt = f"""
+    Rewrite this into natural conversational Hinglish:
+    {payload.text}
+    """
+    response = llm_server.generate(prompt)
+    return {"text": response}

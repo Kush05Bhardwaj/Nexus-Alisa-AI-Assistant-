@@ -8,3 +8,4 @@ scipy>=1.10.0
 faster-whisper>=0.10.0
 pyttsx3>=2.90
 pygame>=2.5.0
+pydub>=0.25.1
